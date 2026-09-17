@@ -1,0 +1,234 @@
+import 'package:flutter/material.dart';
+
+/// Local-calendar day key, e.g. `2026-09-17`.
+///
+/// Storing this alongside the raw timestamp lets SQLite group by *local* day
+/// without any timezone maths, which is the one thing that reliably breaks
+/// calendar apps built on epoch millis alone.
+String dayKeyOf(DateTime d) =>
+    '${d.year.toString().padLeft(4, '0')}-'
+    '${d.month.toString().padLeft(2, '0')}-'
+    '${d.day.toString().padLeft(2, '0')}';
+
+DateTime dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+/// A user-defined substance.
+@immutable
+class Drug {
+  final int? id;
+  final String name;
+  final String emoji;
+  final String unitName;
+  final int colorValue;
+  final bool archived;
+  final int sortOrder;
+
+  const Drug({
+    this.id,
+    required this.name,
+    required this.emoji,
+    this.unitName = 'g',
+    this.colorValue = 0xFF7B68EE,
+    this.archived = false,
+    this.sortOrder = 0,
+  });
+
+  Color get color => Color(colorValue);
+
+  Drug copyWith({
+    int? id,
+    String? name,
+    String? emoji,
+    String? unitName,
+    int? colorValue,
+    bool? archived,
+    int? sortOrder,
+  }) {
+    return Drug(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      emoji: emoji ?? this.emoji,
+      unitName: unitName ?? this.unitName,
+      colorValue: colorValue ?? this.colorValue,
+      archived: archived ?? this.archived,
+      sortOrder: sortOrder ?? this.sortOrder,
+    );
+  }
+
+  Map<String, Object?> toMap() => {
+        if (id != null) 'id': id,
+        'name': name,
+        'emoji': emoji,
+        'unit_name': unitName,
+        'color': colorValue,
+        'archived': archived ? 1 : 0,
+        'sort_order': sortOrder,
+      };
+
+  static Drug fromMap(Map<String, Object?> m) => Drug(
+        id: m['id'] as int?,
+        name: m['name'] as String,
+        emoji: m['emoji'] as String,
+        unitName: (m['unit_name'] as String?) ?? 'g',
+        colorValue: (m['color'] as int?) ?? 0xFF7B68EE,
+        archived: ((m['archived'] as int?) ?? 0) == 1,
+        sortOrder: (m['sort_order'] as int?) ?? 0,
+      );
+}
+
+/// A single consumption event.
+@immutable
+class Intake {
+  final int? id;
+  final int drugId;
+  final DateTime timestamp;
+  final double? quantity;
+  final double? cost;
+  final String? comments;
+
+  const Intake({
+    this.id,
+    required this.drugId,
+    required this.timestamp,
+    this.quantity,
+    this.cost,
+    this.comments,
+  });
+
+  Intake copyWith({
+    int? id,
+    int? drugId,
+    DateTime? timestamp,
+    double? quantity,
+    double? cost,
+    String? comments,
+    bool clearQuantity = false,
+    bool clearCost = false,
+    bool clearComments = false,
+  }) {
+    return Intake(
+      id: id ?? this.id,
+      drugId: drugId ?? this.drugId,
+      timestamp: timestamp ?? this.timestamp,
+      quantity: clearQuantity ? null : (quantity ?? this.quantity),
+      cost: clearCost ? null : (cost ?? this.cost),
+      comments: clearComments ? null : (comments ?? this.comments),
+    );
+  }
+
+  Map<String, Object?> toMap() {
+    final c = comments?.trim();
+    return {
+      if (id != null) 'id': id,
+      'drug_id': drugId,
+      'ts': timestamp.millisecondsSinceEpoch,
+      'day': dayKeyOf(timestamp),
+      'quantity': quantity,
+      'cost': cost,
+      'comments': (c == null || c.isEmpty) ? null : c,
+    };
+  }
+
+  static Intake fromMap(Map<String, Object?> m) => Intake(
+        id: m['id'] as int?,
+        drugId: m['drug_id'] as int,
+        timestamp: DateTime.fromMillisecondsSinceEpoch(m['ts'] as int),
+        quantity: (m['quantity'] as num?)?.toDouble(),
+        cost: (m['cost'] as num?)?.toDouble(),
+        comments: m['comments'] as String?,
+      );
+}
+
+/// What a calendar cell needs to know.
+@immutable
+class DayMarker {
+  final Drug topDrug;
+  final int totalCount;
+  final int distinctDrugs;
+
+  const DayMarker({
+    required this.topDrug,
+    required this.totalCount,
+    required this.distinctDrugs,
+  });
+}
+
+/// One drug's entries within a single day.
+class DayGroup {
+  final Drug drug;
+  final List<Intake> intakes;
+
+  DayGroup({required this.drug, required this.intakes});
+
+  int get count => intakes.length;
+
+  double? get totalQuantity {
+    double? sum;
+    for (final i in intakes) {
+      if (i.quantity != null) sum = (sum ?? 0) + i.quantity!;
+    }
+    return sum;
+  }
+
+  double? get totalCost {
+    double? sum;
+    for (final i in intakes) {
+      if (i.cost != null) sum = (sum ?? 0) + i.cost!;
+    }
+    return sum;
+  }
+}
+
+@immutable
+class DateSpan {
+  final DateTime start;
+  final DateTime end;
+  const DateSpan(this.start, this.end);
+
+  int get days => dateOnly(end).difference(dateOnly(start)).inDays + 1;
+}
+
+@immutable
+class DayCount {
+  final DateTime day;
+  final int count;
+  const DayCount(this.day, this.count);
+}
+
+@immutable
+class DrugStat {
+  final Drug drug;
+  final int count;
+  final double? quantity;
+  final double? cost;
+  final int daysUsed;
+
+  const DrugStat({
+    required this.drug,
+    required this.count,
+    required this.quantity,
+    required this.cost,
+    required this.daysUsed,
+  });
+}
+
+@immutable
+class RangeStats {
+  final DateSpan span;
+  final int totalIntakes;
+  final double totalCost;
+  final int activeDays;
+  final List<DrugStat> perDrug;
+  final List<DayCount> daily;
+
+  const RangeStats({
+    required this.span,
+    required this.totalIntakes,
+    required this.totalCost,
+    required this.activeDays,
+    required this.perDrug,
+    required this.daily,
+  });
+
+  bool get isEmpty => totalIntakes == 0;
+}
