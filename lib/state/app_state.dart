@@ -166,7 +166,7 @@ class AppState extends ChangeNotifier {
       perDrug.add(DrugStat(
         drug: drug,
         count: c,
-        quantity: (r['q'] as num?)?.toDouble(),
+        quantity: (r['q'] as num?)?.toInt(),
         cost: money,
         daysUsed: (r['days'] as int?) ?? 0,
       ));

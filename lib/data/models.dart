@@ -82,7 +82,7 @@ class Intake {
   final int? id;
   final int drugId;
   final DateTime timestamp;
-  final double? quantity;
+  final int? quantity;
   final double? cost;
   final String? comments;
 
@@ -99,7 +99,7 @@ class Intake {
     int? id,
     int? drugId,
     DateTime? timestamp,
-    double? quantity,
+    int? quantity,
     double? cost,
     String? comments,
     bool clearQuantity = false,
@@ -133,7 +133,7 @@ class Intake {
         id: m['id'] as int?,
         drugId: m['drug_id'] as int,
         timestamp: DateTime.fromMillisecondsSinceEpoch(m['ts'] as int),
-        quantity: (m['quantity'] as num?)?.toDouble(),
+        quantity: (m['quantity'] as num?)?.toInt(),
         cost: (m['cost'] as num?)?.toDouble(),
         comments: m['comments'] as String?,
       );
@@ -162,8 +162,8 @@ class DayGroup {
 
   int get count => intakes.length;
 
-  double? get totalQuantity {
-    double? sum;
+  int? get totalQuantity {
+    int? sum;
     for (final i in intakes) {
       if (i.quantity != null) sum = (sum ?? 0) + i.quantity!;
     }
@@ -199,7 +199,7 @@ class DayCount {
 class DrugStat {
   final Drug drug;
   final int count;
-  final double? quantity;
+  final int? quantity;
   final double? cost;
   final int daysUsed;
 

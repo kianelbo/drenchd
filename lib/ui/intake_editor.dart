@@ -58,9 +58,9 @@ class _IntakeSheetState extends State<_IntakeSheet> {
       _timestamp = existing.timestamp;
       _drugId = existing.drugId;
       if (existing.quantity != null) {
-        _quantity.text = fmtQty(existing.quantity!);
+        _quantity.text = existing.quantity!.toString();
       }
-      if (existing.cost != null) _cost.text = fmtQty(existing.cost!);
+      if (existing.cost != null) _cost.text = _fmtCost(existing.cost!);
       _comments.text = existing.comments ?? '';
     } else {
       final now = DateTime.now();
@@ -79,7 +79,24 @@ class _IntakeSheetState extends State<_IntakeSheet> {
     super.dispose();
   }
 
-  double? _parse(TextEditingController c) {
+  /// Drops trailing zeros: 1.50 -> "1.5", 3.0 -> "3", 0.125 -> "0.125".
+  String _fmtCost(double value) {
+    var s = value.toStringAsFixed(3);
+    if (s.contains('.')) {
+      s = s.replaceFirst(RegExp(r'0+$'), '');
+      if (s.endsWith('.')) s = s.substring(0, s.length - 1);
+    }
+    return s;
+  }
+
+  int? _parseQuantity(TextEditingController c) {
+    final raw = c.text.trim();
+    if (raw.isEmpty) return null;
+    final v = int.tryParse(raw);
+    return (v == null || v < 0) ? null : v;
+  }
+
+  double? _parseCost(TextEditingController c) {
     final raw = c.text.trim().replaceAll(',', '.');
     if (raw.isEmpty) return null;
     final v = double.tryParse(raw);
@@ -121,8 +138,8 @@ class _IntakeSheetState extends State<_IntakeSheet> {
       id: widget.intake?.id,
       drugId: _drugId!,
       timestamp: _timestamp,
-      quantity: _parse(_quantity),
-      cost: _parse(_cost),
+      quantity: _parseQuantity(_quantity),
+      cost: _parseCost(_cost),
       comments: _comments.text,
     );
     await context.read<AppState>().saveIntake(entry);

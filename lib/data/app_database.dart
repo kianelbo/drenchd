@@ -47,7 +47,7 @@ class AppDatabase {
         drug_id   INTEGER NOT NULL REFERENCES drugs(id) ON DELETE CASCADE,
         ts        INTEGER NOT NULL,
         day       TEXT    NOT NULL,
-        quantity  REAL,
+        quantity  INTEGER,
         cost      REAL,
         comments  TEXT
       )
