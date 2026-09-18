@@ -4,15 +4,6 @@ import 'package:provider/provider.dart';
 
 import '../data/models.dart';
 import '../state/app_state.dart';
-import '../theme.dart';
-import 'widgets.dart';
-
-const _emojiChoices = <String>[
-  '☘️', '🍄', '🌀', '💠', '🌫️', '🍺', '🚬', '☕', '💊', '💉',
-  '🌿', '🍁', '🧪', '⚗️', '🌵', '🍷', '🥃', '🧊', '❄️', '🔥',
-  '🌙', '✨', '🎈', '🫧', '🌸', '🦋', '🐉', '🧿', '🍫', '🧠',
-  '💤', '🕯️', '🌞', '🌈', '🪄', '🔮',
-];
 
 const _unitChoices = <String>[
   'g', 'mg', 'µg', 'ml', 'units', 'pills', 'tabs', 'caps',
@@ -47,34 +38,51 @@ class _DrugSheet extends StatefulWidget {
 class _DrugSheetState extends State<_DrugSheet> {
   late final TextEditingController _name =
       TextEditingController(text: widget.drug?.name ?? '');
+  late final TextEditingController _emoji =
+      TextEditingController(text: widget.drug?.emoji ?? '💊');
   late final TextEditingController _unit =
       TextEditingController(text: widget.drug?.unitName ?? 'g');
 
-  late String _emoji = widget.drug?.emoji ?? '☘️';
   late int _color = widget.drug?.colorValue ?? _colorChoices.first;
-  String? _error;
+  String? _rowError;
 
   bool get _isNew => widget.drug?.id == null;
+  bool get _isNameEmpty => _name.text.trim().isEmpty;
+  bool get _isEmojiEmpty => _emoji.text.trim().isEmpty;
+  bool get _canSubmit => !_isNameEmpty && !_isEmojiEmpty;
+
+  String? get _currentRowError {
+    if (_isNameEmpty && _isEmojiEmpty) return 'Give it a name and an icon.';
+    if (_isNameEmpty) return 'Give it a name.';
+    if (_isEmojiEmpty) return 'Add an icon.';
+    return null;
+  }
 
   @override
   void dispose() {
     _name.dispose();
+    _emoji.dispose();
     _unit.dispose();
     super.dispose();
   }
 
   Future<void> _save() async {
     final name = _name.text.trim();
-    if (name.isEmpty) {
-      setState(() => _error = 'Give it a name so you can find it later.');
+    final emoji = _emoji.text.trim();
+
+    if (!_canSubmit) {
+      setState(() => _rowError = _currentRowError);
       return;
     }
+
+    setState(() => _rowError = null);
+
     final unit = _unit.text.trim().isEmpty ? 'g' : _unit.text.trim();
     final state = context.read<AppState>();
     final id = await state.saveDrug(
-      (widget.drug ?? Drug(name: name, emoji: _emoji)).copyWith(
+      (widget.drug ?? Drug(name: name, emoji: emoji)).copyWith(
         name: name,
-        emoji: _emoji,
+        emoji: emoji,
         unitName: unit,
         colorValue: _color,
       ),
@@ -85,7 +93,6 @@ class _DrugSheetState extends State<_DrugSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = Color(_color);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -98,51 +105,54 @@ class _DrugSheetState extends State<_DrugSheet> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
+            const SizedBox(height: 8),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                EmojiBadge(emoji: _emoji, color: color, size: 52),
-                const SizedBox(width: 14),
                 Expanded(
-                  child: Text(
-                    _isNew ? 'New substance' : 'Edit substance',
-                    style: theme.textTheme.titleLarge,
+                  child: TextField(
+                    controller: _name,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      labelText: 'Name',
+                      hintText: 'Weed, Kratom, Melatonin…',
+                      errorText: _isNameEmpty ? ' ' : null,
+                    ),
+                    onChanged: (_) => setState(() {
+                      _rowError = _currentRowError;
+                    }),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 72,
+                  child: TextField(
+                    controller: _emoji,
+                    textAlign: TextAlign.center,
+                    maxLength: 1,
+                    decoration: InputDecoration(
+                      labelText: 'Icon',
+                      isDense: true,
+                      counterText: '',
+                      errorText: _isEmojiEmpty ? ' ' : null,
+                    ),
+                    onChanged: (_) => setState(() {
+                      _rowError = _currentRowError;
+                    }),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 22),
-            TextField(
-              controller: _name,
-              textCapitalization: TextCapitalization.sentences,
-              decoration: InputDecoration(
-                labelText: 'Name',
-                hintText: 'Weed, Kratom, Melatonin…',
-                errorText: _error,
+            if (_rowError != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _rowError!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
               ),
-              onChanged: (_) {
-                if (_error != null) setState(() => _error = null);
-              },
-            ),
+            ],
             const SizedBox(height: 20),
-            Text('Symbol', style: theme.textTheme.labelMedium),
-            const SizedBox(height: 8),
-            _EmojiGrid(
-              selected: _emoji,
-              onSelected: (e) => setState(() => _emoji = e),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Or paste any emoji',
-                isDense: true,
-              ),
-              inputFormatters: [LengthLimitingTextInputFormatter(4)],
-              onChanged: (v) {
-                final t = v.trim();
-                if (t.isNotEmpty) setState(() => _emoji = t);
-              },
-            ),
-            const SizedBox(height: 16),
             Text('Unit shown next to quantities',
                 style: theme.textTheme.labelMedium),
             const SizedBox(height: 8),
@@ -198,58 +208,12 @@ class _DrugSheetState extends State<_DrugSheet> {
             ),
             const SizedBox(height: 26),
             FilledButton(
-              onPressed: _save,
+              onPressed: _canSubmit ? _save : null,
               child: Text(_isNew ? 'Add substance' : 'Save changes'),
             ),
             const SizedBox(height: 8),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _EmojiGrid extends StatelessWidget {
-  const _EmojiGrid({required this.selected, required this.onSelected});
-
-  final String selected;
-  final ValueChanged<String> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return SizedBox(
-      height: 96,
-      child: GridView.builder(
-        scrollDirection: Axis.horizontal,
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
-          childAspectRatio: 1,
-        ),
-        itemCount: _emojiChoices.length,
-        itemBuilder: (context, i) {
-          final emoji = _emojiChoices[i];
-          final isSelected = emoji == selected;
-          return GestureDetector(
-            onTap: () => onSelected(emoji),
-            child: Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? scheme.primary.op(0.16)
-                    : scheme.onSurface.op(0.05),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected ? scheme.primary : Colors.transparent,
-                  width: 1.6,
-                ),
-              ),
-              child: Text(emoji, style: const TextStyle(fontSize: 20)),
-            ),
-          );
-        },
       ),
     );
   }
