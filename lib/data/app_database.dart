@@ -35,8 +35,7 @@ class AppDatabase {
         name        TEXT    NOT NULL,
         emoji       TEXT    NOT NULL,
         unit_name   TEXT    NOT NULL DEFAULT 'g',
-        color       INTEGER NOT NULL DEFAULT 8100078,
-        archived    INTEGER NOT NULL DEFAULT 0
+        color       INTEGER NOT NULL DEFAULT 8100078
       )
     ''');
 
@@ -64,7 +63,6 @@ class AppDatabase {
         'emoji': s.$2,
         'unit_name': s.$3,
         'color': s.$4,
-        'archived': 0,
       });
     }
     await batch.commit(noResult: true);

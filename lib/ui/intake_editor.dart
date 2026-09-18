@@ -165,7 +165,7 @@ class _IntakeSheetState extends State<_IntakeSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final state = context.watch<AppState>();
-    final drugs = state.activeDrugs;
+    final drugs = state.drugs;
     final selected = state.drugById(_drugId);
     final unit = selected?.unitName ?? 'g';
 

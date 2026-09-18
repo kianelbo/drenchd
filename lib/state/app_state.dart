@@ -24,7 +24,6 @@ class AppState extends ChangeNotifier {
   DateTime selectedDay = dateOnly(DateTime.now());
   List<DayGroup> dayGroups = const [];
 
-  List<Drug> get activeDrugs => drugs.where((d) => !d.archived).toList();
   Drug? drugById(int? id) => id == null ? null : _byId[id];
   DayMarker? markerFor(DateTime day) => markers[dayKeyOf(day)];
 
@@ -33,7 +32,7 @@ class AppState extends ChangeNotifier {
 
   /// The drugs used most often overall — used for one-tap logging.
   List<Drug> get quickPicks {
-    final list = activeDrugs.toList()
+    final list = drugs.toList()
       ..sort((a, b) => (usage[b.id] ?? 0).compareTo(usage[a.id] ?? 0));
     return list.take(5).toList();
   }

@@ -20,7 +20,6 @@ class Drug {
   final String emoji;
   final String unitName;
   final int colorValue;
-  final bool archived;
 
   const Drug({
     this.id,
@@ -28,7 +27,6 @@ class Drug {
     required this.emoji,
     this.unitName = 'g',
     this.colorValue = 0xFF7B68EE,
-    this.archived = false,
   });
 
   Color get color => Color(colorValue);
@@ -39,7 +37,6 @@ class Drug {
     String? emoji,
     String? unitName,
     int? colorValue,
-    bool? archived,
   }) {
     return Drug(
       id: id ?? this.id,
@@ -47,7 +44,6 @@ class Drug {
       emoji: emoji ?? this.emoji,
       unitName: unitName ?? this.unitName,
       colorValue: colorValue ?? this.colorValue,
-      archived: archived ?? this.archived,
     );
   }
 
@@ -57,7 +53,6 @@ class Drug {
         'emoji': emoji,
         'unit_name': unitName,
         'color': colorValue,
-        'archived': archived ? 1 : 0,
       };
 
   static Drug fromMap(Map<String, Object?> m) => Drug(
@@ -66,7 +61,6 @@ class Drug {
         emoji: m['emoji'] as String,
         unitName: (m['unit_name'] as String?) ?? 'g',
         colorValue: (m['color'] as int?) ?? 0xFF7B68EE,
-        archived: ((m['archived'] as int?) ?? 0) == 1,
       );
 }
 

@@ -6,12 +6,8 @@ class DrugRepository {
   DrugRepository(this._db);
   final Database _db;
 
-  Future<List<Drug>> all({bool includeArchived = true}) async {
-    final rows = await _db.query(
-      'drugs',
-      where: includeArchived ? null : 'archived = 0',
-      orderBy: 'archived ASC, name COLLATE NOCASE ASC',
-    );
+  Future<List<Drug>> all() async {
+    final rows = await _db.query('drugs', orderBy: 'name COLLATE NOCASE ASC');
     return rows.map(Drug.fromMap).toList();
   }
 

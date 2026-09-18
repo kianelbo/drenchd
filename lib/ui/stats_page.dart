@@ -153,7 +153,7 @@ class _StatsPageState extends State<StatsPage> {
             ),
           ),
         ),
-        if (state.activeDrugs.isNotEmpty)
+        if (state.drugs.isNotEmpty)
           SliverToBoxAdapter(
             child: SizedBox(
               height: 46,
@@ -170,7 +170,7 @@ class _StatsPageState extends State<StatsPage> {
                     },
                   ),
                   const SizedBox(width: 8),
-                  for (final d in state.activeDrugs) ...[
+                  for (final d in state.drugs) ...[
                     FilterChip(
                       avatar:
                           Text(d.emoji, style: const TextStyle(fontSize: 14)),
