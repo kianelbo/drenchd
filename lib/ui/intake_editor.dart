@@ -109,6 +109,7 @@ class _IntakeSheetState extends State<_IntakeSheet> {
       initialDate: _timestamp,
       firstDate: DateTime(2015),
       lastDate: DateTime(DateTime.now().year + 2, 12, 31),
+      initialEntryMode: DatePickerEntryMode.calendarOnly,
     );
     if (picked == null) return;
     setState(() {
@@ -121,6 +122,7 @@ class _IntakeSheetState extends State<_IntakeSheet> {
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_timestamp),
+      initialEntryMode: TimePickerEntryMode.inputOnly,
     );
     if (picked == null) return;
     setState(() {
