@@ -6,11 +6,6 @@ import '../data/models.dart';
 import '../state/app_state.dart';
 import '../util/color.dart';
 
-const _unitChoices = <String>[
-  'g', 'mg', 'µg', 'ml', 'units', 'pills', 'tabs', 'caps',
-  'hits', 'puffs', 'cig', 'drops', 'lines', 'shots', 'bowls',
-];
-
 /// Returns the id of the created/updated drug, or null if cancelled.
 Future<int?> showDrugEditor(BuildContext context, {Drug? drug}) {
   return showModalBottomSheet<int>(
@@ -43,12 +38,19 @@ class _DrugSheetState extends State<_DrugSheet> {
   bool get _isNew => widget.drug?.id == null;
   bool get _isNameEmpty => _name.text.trim().isEmpty;
   bool get _isEmojiEmpty => _emoji.text.trim().isEmpty;
-  bool get _canSubmit => !_isNameEmpty && !_isEmojiEmpty;
+  bool get _isUnitEmpty => _unit.text.trim().isEmpty;
+  bool get _canSubmit => !_isNameEmpty && !_isEmojiEmpty && !_isUnitEmpty;
 
   String? get _currentRowError {
+    if (_isNameEmpty && _isEmojiEmpty && _isUnitEmpty) {
+      return 'Give it a name, an icon, and a unit.';
+    }
     if (_isNameEmpty && _isEmojiEmpty) return 'Give it a name and an icon.';
+    if (_isNameEmpty && _isUnitEmpty) return 'Give it a name and a unit.';
+    if (_isEmojiEmpty && _isUnitEmpty) return 'Add an icon and a unit.';
     if (_isNameEmpty) return 'Give it a name.';
     if (_isEmojiEmpty) return 'Add an icon.';
+    if (_isUnitEmpty) return 'Add a unit.';
     return null;
   }
 
@@ -63,6 +65,7 @@ class _DrugSheetState extends State<_DrugSheet> {
   Future<void> _save() async {
     final name = _name.text.trim();
     final emoji = _emoji.text.trim();
+    final unit = _unit.text.trim();
 
     if (!_canSubmit) {
       setState(() => _rowError = _currentRowError);
@@ -71,7 +74,6 @@ class _DrugSheetState extends State<_DrugSheet> {
 
     setState(() => _rowError = null);
 
-    final unit = _unit.text.trim().isEmpty ? 'g' : _unit.text.trim();
     final state = context.read<AppState>();
     final color = await emojiColorFor(emoji);
     final id = await state.saveDrug(
@@ -148,30 +150,18 @@ class _DrugSheetState extends State<_DrugSheet> {
               ),
             ],
             const SizedBox(height: 20),
-            Text('Unit shown next to quantities',
-                style: theme.textTheme.labelMedium),
-            const SizedBox(height: 8),
             TextField(
               controller: _unit,
               inputFormatters: [LengthLimitingTextInputFormatter(12)],
-              decoration: const InputDecoration(isDense: true),
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final u in _unitChoices)
-                  ChoiceChip(
-                    label: Text(u),
-                    selected: _unit.text.trim() == u,
-                    onSelected: (_) => setState(() {
-                      _unit.text = u;
-                      _unit.selection =
-                          TextSelection.collapsed(offset: u.length);
-                    }),
-                  ),
-              ],
+              decoration: InputDecoration(
+                labelText: 'Unit',
+                hintText: 'g, ml, tab(s)…',
+                isDense: true,
+                errorText: _isUnitEmpty ? ' ' : null,
+              ),
+              onChanged: (_) => setState(() {
+                _rowError = _currentRowError;
+              }),
             ),
             const SizedBox(height: 26),
             FilledButton(
