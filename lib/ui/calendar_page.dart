@@ -1,5 +1,3 @@
-import 'dart:ui' show FontFeature;
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -24,12 +22,11 @@ class CalendarPage extends StatelessWidget {
         const SliverToBoxAdapter(child: _CalendarGrid()),
         const SliverToBoxAdapter(child: SizedBox(height: 20)),
         const SliverToBoxAdapter(child: _DayHeader()),
-        const SliverToBoxAdapter(child: _QuickLogRow()),
         if (state.dayGroups.isEmpty)
           SliverToBoxAdapter(
             child: EmptyState(
               title: 'Nothing logged',
-              message: 'Tap a substance above, or use Log for the full form.',
+              message: 'Such a clean day!',
             ),
           )
         else
@@ -261,91 +258,13 @@ class _DayHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final state = context.watch<AppState>();
-    final count = state.selectedDayCount;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 4, 20, 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  relativeDayLabel(state.selectedDay),
-                  style: theme.textTheme.titleLarge,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  count == 0
-                      ? dfDayMedium.format(state.selectedDay)
-                      : '$count ${count == 1 ? 'entry' : 'entries'} · '
-                          '${dfDayMedium.format(state.selectedDay)}',
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _QuickLogRow extends StatelessWidget {
-  const _QuickLogRow();
-
-  @override
-  Widget build(BuildContext context) {
-    final state = context.watch<AppState>();
-    final picks = state.quickPicks;
-    if (picks.isEmpty) return const SizedBox.shrink();
-
-    return SizedBox(
-      height: 44,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-        itemCount: picks.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, i) {
-          final drug = picks[i];
-          return ActionChip(
-            avatar: Text(drug.emoji, style: const TextStyle(fontSize: 15)),
-            label: Text(drug.name),
-            backgroundColor: drug.color.op(0.12),
-            onPressed: () => _quickLog(context, drug),
-          );
-        },
-      ),
-    );
-  }
-
-  Future<void> _quickLog(BuildContext context, Drug drug) async {
-    final state = context.read<AppState>();
-    final now = DateTime.now();
-    final day = state.selectedDay;
-    final entry = Intake(
-      drugId: drug.id!,
-      timestamp: DateTime(day.year, day.month, day.day, now.hour, now.minute),
-    );
-    await state.saveIntake(entry);
-    if (!context.mounted) return;
-    showToast(
-      context,
-      '${drug.emoji} ${drug.name} logged',
-      action: SnackBarAction(
-        label: 'Add details',
-        onPressed: () {
-          final latest = state.dayGroups
-              .firstWhere((g) => g.drug.id == drug.id,
-                  orElse: () => DayGroup(drug: drug, intakes: const []))
-              .intakes;
-          if (latest.isEmpty) return;
-          showIntakeEditor(context, intake: latest.first);
-        },
-      ),
+      child: Text(
+        relativeDayLabel(state.selectedDay),
+        style: theme.textTheme.titleLarge,
+      )
     );
   }
 }
@@ -466,7 +385,7 @@ class _IntakeRow extends StatelessWidget {
     final theme = Theme.of(context);
     final amount = fmtAmount(intake.quantity, drug.unitName);
     final cost = intake.cost == null ? null : fmtMoney(intake.cost!);
-    final meta = [if (amount != null) amount, if (cost != null) cost];
+    final meta = [?amount, ?cost];
 
     return Dismissible(
       key: ValueKey('intake-${intake.id}'),

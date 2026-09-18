@@ -27,9 +27,6 @@ class AppState extends ChangeNotifier {
   Drug? drugById(int? id) => id == null ? null : _byId[id];
   DayMarker? markerFor(DateTime day) => markers[dayKeyOf(day)];
 
-  int get selectedDayCount =>
-      dayGroups.fold(0, (sum, g) => sum + g.count);
-
   /// The drugs used most often overall — used for one-tap logging.
   List<Drug> get quickPicks {
     final list = drugs.toList()
