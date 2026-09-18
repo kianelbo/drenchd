@@ -21,7 +21,6 @@ class Drug {
   final String unitName;
   final int colorValue;
   final bool archived;
-  final int sortOrder;
 
   const Drug({
     this.id,
@@ -30,7 +29,6 @@ class Drug {
     this.unitName = 'g',
     this.colorValue = 0xFF7B68EE,
     this.archived = false,
-    this.sortOrder = 0,
   });
 
   Color get color => Color(colorValue);
@@ -42,7 +40,6 @@ class Drug {
     String? unitName,
     int? colorValue,
     bool? archived,
-    int? sortOrder,
   }) {
     return Drug(
       id: id ?? this.id,
@@ -51,7 +48,6 @@ class Drug {
       unitName: unitName ?? this.unitName,
       colorValue: colorValue ?? this.colorValue,
       archived: archived ?? this.archived,
-      sortOrder: sortOrder ?? this.sortOrder,
     );
   }
 
@@ -62,7 +58,6 @@ class Drug {
         'unit_name': unitName,
         'color': colorValue,
         'archived': archived ? 1 : 0,
-        'sort_order': sortOrder,
       };
 
   static Drug fromMap(Map<String, Object?> m) => Drug(
@@ -72,7 +67,6 @@ class Drug {
         unitName: (m['unit_name'] as String?) ?? 'g',
         colorValue: (m['color'] as int?) ?? 0xFF7B68EE,
         archived: ((m['archived'] as int?) ?? 0) == 1,
-        sortOrder: (m['sort_order'] as int?) ?? 0,
       );
 }
 

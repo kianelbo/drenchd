@@ -23,17 +23,7 @@ class DrugsPage extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Substances', style: theme.textTheme.headlineSmall),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Drag to reorder. The order sets the quick-log row.',
-                      style: theme.textTheme.bodySmall,
-                    ),
-                  ],
-                ),
+                child: Text('Substances', style: theme.textTheme.headlineSmall),
               ),
               IconButton.filledTonal(
                 onPressed: () => showDrugEditor(context),
@@ -54,22 +44,15 @@ class DrugsPage extends StatelessWidget {
                     child: const Text('Add a substance'),
                   ),
                 )
-              : ReorderableListView.builder(
+              : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
                   itemCount: state.drugs.length,
-                  onReorder: context.read<AppState>().reorderDrugs,
-                  proxyDecorator: (child, index, animation) => Material(
-                    color: Colors.transparent,
-                    child: child,
-                  ),
                   itemBuilder: (context, i) {
                     final drug = state.drugs[i];
                     return Padding(
-                      key: ValueKey('drug-${drug.id}'),
                       padding: const EdgeInsets.only(bottom: 10),
                       child: _DrugRow(
                         drug: drug,
-                        index: i,
                         uses: state.usage[drug.id] ?? 0,
                       ),
                     );
@@ -82,10 +65,9 @@ class DrugsPage extends StatelessWidget {
 }
 
 class _DrugRow extends StatelessWidget {
-  const _DrugRow({required this.drug, required this.index, required this.uses});
+  const _DrugRow({required this.drug, required this.uses});
 
   final Drug drug;
-  final int index;
   final int uses;
 
   @override
@@ -128,14 +110,6 @@ class _DrugRow extends StatelessWidget {
                   onPressed: () => _delete(context),
                   icon: const Icon(Icons.delete_outline, size: 20),
                   tooltip: 'Delete',
-                ),
-                ReorderableDragStartListener(
-                  index: index,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: Icon(Icons.drag_handle,
-                        color: theme.colorScheme.onSurface.op(0.35)),
-                  ),
                 ),
               ],
             ),

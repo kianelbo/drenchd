@@ -133,18 +133,6 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> reorderDrugs(int oldIndex, int newIndex) async {
-    final list = drugs.toList();
-    if (newIndex > oldIndex) newIndex -= 1;
-    final moved = list.removeAt(oldIndex);
-    list.insert(newIndex, moved);
-    drugs = list;
-    notifyListeners();
-    await _drugRepo.applyOrder([for (final d in list) d.id!]);
-    await _reloadEverything();
-    notifyListeners();
-  }
-
   // ------------------------------------------------------------------- stats
 
   Future<DateTime?> earliestEntry() => _intakeRepo.earliestDay();

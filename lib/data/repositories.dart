@@ -10,15 +10,12 @@ class DrugRepository {
     final rows = await _db.query(
       'drugs',
       where: includeArchived ? null : 'archived = 0',
-      orderBy: 'archived ASC, sort_order ASC, name COLLATE NOCASE ASC',
+      orderBy: 'archived ASC, name COLLATE NOCASE ASC',
     );
     return rows.map(Drug.fromMap).toList();
   }
 
-  Future<int> insert(Drug drug) async {
-    final order = drug.sortOrder != 0 ? drug.sortOrder : await _nextSortOrder();
-    return _db.insert('drugs', drug.copyWith(sortOrder: order).toMap());
-  }
+  Future<int> insert(Drug drug) => _db.insert('drugs', drug.toMap());
 
   Future<void> update(Drug drug) => _db.update(
         'drugs',
@@ -30,20 +27,6 @@ class DrugRepository {
   /// Cascades to every intake of this drug.
   Future<void> delete(int id) =>
       _db.delete('drugs', where: 'id = ?', whereArgs: [id]);
-
-  Future<void> applyOrder(List<int> idsInOrder) async {
-    final batch = _db.batch();
-    for (var i = 0; i < idsInOrder.length; i++) {
-      batch.update('drugs', {'sort_order': i},
-          where: 'id = ?', whereArgs: [idsInOrder[i]]);
-    }
-    await batch.commit(noResult: true);
-  }
-
-  Future<int> _nextSortOrder() async {
-    final r = await _db.rawQuery('SELECT COALESCE(MAX(sort_order), -1) + 1 AS n FROM drugs');
-    return (r.first['n'] as int?) ?? 0;
-  }
 }
 
 class IntakeRepository {
