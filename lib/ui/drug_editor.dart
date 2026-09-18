@@ -4,16 +4,11 @@ import 'package:provider/provider.dart';
 
 import '../data/models.dart';
 import '../state/app_state.dart';
+import '../util/color.dart';
 
 const _unitChoices = <String>[
   'g', 'mg', 'µg', 'ml', 'units', 'pills', 'tabs', 'caps',
   'hits', 'puffs', 'cig', 'drops', 'lines', 'shots', 'bowls',
-];
-
-const _colorChoices = <int>[
-  0xFF5FA55A, 0xFFC85C5C, 0xFF8F6FD6, 0xFF3FA7D6, 0xFF7D8CA3,
-  0xFFD9A441, 0xFF9C7A66, 0xFFA6785C, 0xFFE07A5F, 0xFF3D9970,
-  0xFFB5559B, 0xFF4F6D7A,
 ];
 
 /// Returns the id of the created/updated drug, or null if cancelled.
@@ -43,7 +38,6 @@ class _DrugSheetState extends State<_DrugSheet> {
   late final TextEditingController _unit =
       TextEditingController(text: widget.drug?.unitName ?? 'g');
 
-  late int _color = widget.drug?.colorValue ?? _colorChoices.first;
   String? _rowError;
 
   bool get _isNew => widget.drug?.id == null;
@@ -79,12 +73,13 @@ class _DrugSheetState extends State<_DrugSheet> {
 
     final unit = _unit.text.trim().isEmpty ? 'g' : _unit.text.trim();
     final state = context.read<AppState>();
+    final color = await emojiColorFor(emoji);
     final id = await state.saveDrug(
       (widget.drug ?? Drug(name: name, emoji: emoji)).copyWith(
         name: name,
         emoji: emoji,
         unitName: unit,
-        colorValue: _color,
+        colorValue: color,
       ),
     );
     if (mounted) Navigator.pop(context, id);
@@ -175,34 +170,6 @@ class _DrugSheetState extends State<_DrugSheet> {
                       _unit.selection =
                           TextSelection.collapsed(offset: u.length);
                     }),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Text('Colour on the calendar',
-                style: theme.textTheme.labelMedium),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                for (final c in _colorChoices)
-                  GestureDetector(
-                    onTap: () => setState(() => _color = c),
-                    child: Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        color: Color(c),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: _color == c
-                              ? theme.colorScheme.onSurface
-                              : Colors.transparent,
-                          width: 2.5,
-                        ),
-                      ),
-                    ),
                   ),
               ],
             ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../util/color.dart';
+
 /// Local-calendar day key, e.g. `2026-09-17`.
 ///
 /// Storing this alongside the raw timestamp lets SQLite group by *local* day
@@ -60,7 +62,7 @@ class Drug {
         name: m['name'] as String,
         emoji: m['emoji'] as String,
         unitName: (m['unit_name'] as String?) ?? 'g',
-        colorValue: (m['color'] as int?) ?? 0xFF7B68EE,
+        colorValue: (m['color'] as int?) ?? fallbackEmojiColor(m['emoji'] as String),
       );
 }
 

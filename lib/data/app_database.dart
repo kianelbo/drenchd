@@ -1,6 +1,8 @@
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
+import '../util/color.dart';
+
 /// Opens (and creates) the local SQLite file. Nothing here ever touches a
 /// network: the database lives in the app's private sandbox directory.
 class AppDatabase {
@@ -62,7 +64,7 @@ class AppDatabase {
         'name': s.$1,
         'emoji': s.$2,
         'unit_name': s.$3,
-        'color': s.$4,
+        'color': await emojiColorFor(s.$2),
       });
     }
     await batch.commit(noResult: true);
@@ -81,14 +83,14 @@ class AppDatabase {
   }
 }
 
-/// (name, emoji, unit, colour)
-const List<(String, String, String, int)> _seed = [
-  ('Weed', '☘️', 'g', 0xFF5FA55A),
-  ('Psilocybin', '🍄', 'g', 0xFFC85C5C),
-  ('LSD', '🌀', 'µg', 0xFF8F6FD6),
-  ('MDMA', '💠', 'mg', 0xFF3FA7D6),
-  ('Ketamine', '🌫️', 'mg', 0xFF7D8CA3),
-  ('Alcohol', '🍺', 'units', 0xFFD9A441),
-  ('Nicotine', '🚬', 'cig', 0xFF9C7A66),
-  ('Caffeine', '☕', 'mg', 0xFFA6785C),
+/// (name, emoji, unit)
+const List<(String, String, String)> _seed = [
+  ('Weed', '☘️', 'g'),
+  ('Psilocybin', '🍄', 'g'),
+  ('LSD', '🌀', 'µg'),
+  ('MDMA', '💗', 'mg'),
+  ('Ketamine', '🌫️', 'mg'),
+  ('Alcohol', '🍺', 'units'),
+  ('Nicotine', '🚬', 'cig'),
+  ('Caffeine', '☕', 'mg'),
 ];
