@@ -39,7 +39,7 @@ class CalendarPage extends StatelessWidget {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 10),
                   child: DayGroupTile(
-                    key: ValueKey('group-${group.drug.id}'),
+                    key: ValueKey('group-${group.substance.id}'),
                     group: group,
                   ),
                 );
@@ -164,7 +164,7 @@ class _DayCell extends StatelessWidget {
     if (isSelected) {
       fill = scheme.primary;
     } else if (marker != null) {
-      fill = marker.topDrug.color.op(isOutside ? 0.07 : 0.18);
+      fill = marker.topSubstance.color.op(isOutside ? 0.07 : 0.18);
     } else {
       fill = Colors.transparent;
     }
@@ -211,7 +211,7 @@ class _DayCell extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 1),
                     child: Text(
-                      marker.topDrug.emoji,
+                      marker.topSubstance.emoji,
                       style: TextStyle(fontSize: 16, color: isOutside
                           ? scheme.onSurface.op(0.3)
                           : null),
@@ -269,7 +269,7 @@ class _DayHeader extends StatelessWidget {
   }
 }
 
-/// Compact per-drug row for the selected day; expands to individual entries.
+/// Compact per-substance row for the selected day; expands to individual entries.
 class DayGroupTile extends StatefulWidget {
   const DayGroupTile({super.key, required this.group});
 
@@ -286,10 +286,10 @@ class _DayGroupTileState extends State<DayGroupTile> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final group = widget.group;
-    final drug = group.drug;
+    final substance = group.substance;
 
     final details = <String>[
-      fmtAmount(group.totalQuantity, drug.unitName),
+      fmtAmount(group.totalQuantity, substance.unitName),
       if (group.totalCost != null) fmtMoney(group.totalCost!),
     ];
 
@@ -306,7 +306,7 @@ class _DayGroupTileState extends State<DayGroupTile> {
                 padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
-                    EmojiBadge(emoji: drug.emoji, color: drug.color),
+                    EmojiBadge(emoji: substance.emoji, color: substance.color),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -316,7 +316,7 @@ class _DayGroupTileState extends State<DayGroupTile> {
                             children: [
                               Flexible(
                                 child: Text(
-                                  drug.name,
+                                  substance.name,
                                   overflow: TextOverflow.ellipsis,
                                   style: theme.textTheme.titleMedium,
                                 ),
@@ -325,7 +325,7 @@ class _DayGroupTileState extends State<DayGroupTile> {
                               Text(
                                 '×${group.count}',
                                 style: theme.textTheme.titleMedium?.copyWith(
-                                  color: drug.color,
+                                  color: substance.color,
                                   fontFeatures: const [
                                     FontFeature.tabularFigures()
                                   ],
@@ -361,7 +361,7 @@ class _DayGroupTileState extends State<DayGroupTile> {
                     children: [
                       Divider(indent: 14, endIndent: 14, height: 1),
                       for (final intake in group.intakes)
-                        _IntakeRow(intake: intake, drug: drug),
+                        _IntakeRow(intake: intake, substance: substance),
                       const SizedBox(height: 6),
                     ],
                   )
@@ -374,15 +374,15 @@ class _DayGroupTileState extends State<DayGroupTile> {
 }
 
 class _IntakeRow extends StatelessWidget {
-  const _IntakeRow({required this.intake, required this.drug});
+  const _IntakeRow({required this.intake, required this.substance});
 
   final Intake intake;
-  final Drug drug;
+  final Substance substance;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final amount = fmtAmount(intake.quantity, drug.unitName);
+    final amount = fmtAmount(intake.quantity, substance.unitName);
     final cost = intake.cost == null ? null : fmtMoney(intake.cost!);
     final meta = [amount, ?cost];
 

@@ -6,36 +6,36 @@ import '../data/models.dart';
 import '../state/app_state.dart';
 import '../util/color.dart';
 
-/// Returns the id of the created/updated drug, or null if cancelled.
-Future<int?> showDrugEditor(BuildContext context, {Drug? drug}) {
+/// Returns the id of the created/updated substance, or null if cancelled.
+Future<int?> showSubstanceEditor(BuildContext context, {Substance? substance}) {
   return showModalBottomSheet<int>(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    builder: (_) => _DrugSheet(drug: drug),
+    builder: (_) => _SubstanceSheet(substance: substance),
   );
 }
 
-class _DrugSheet extends StatefulWidget {
-  const _DrugSheet({this.drug});
-  final Drug? drug;
+class _SubstanceSheet extends StatefulWidget {
+  const _SubstanceSheet({this.substance});
+  final Substance? substance;
 
   @override
-  State<_DrugSheet> createState() => _DrugSheetState();
+  State<_SubstanceSheet> createState() => _SubstanceSheetState();
 }
 
-class _DrugSheetState extends State<_DrugSheet> {
+class _SubstanceSheetState extends State<_SubstanceSheet> {
   late final TextEditingController _name =
-      TextEditingController(text: widget.drug?.name ?? '');
+      TextEditingController(text: widget.substance?.name ?? '');
   late final TextEditingController _emoji =
-      TextEditingController(text: widget.drug?.emoji ?? '💊');
+      TextEditingController(text: widget.substance?.emoji ?? '💊');
   late final TextEditingController _unit =
-      TextEditingController(text: widget.drug?.unitName ?? 'g');
+      TextEditingController(text: widget.substance?.unitName ?? 'g');
 
   String? _rowError;
 
-  bool get _isNew => widget.drug?.id == null;
+  bool get _isNew => widget.substance?.id == null;
   bool get _isNameEmpty => _name.text.trim().isEmpty;
   bool get _isEmojiEmpty => _emoji.text.trim().isEmpty;
   bool get _isUnitEmpty => _unit.text.trim().isEmpty;
@@ -76,8 +76,8 @@ class _DrugSheetState extends State<_DrugSheet> {
 
     final state = context.read<AppState>();
     final color = await emojiColorFor(emoji);
-    final id = await state.saveDrug(
-      (widget.drug ?? Drug(name: name, emoji: emoji)).copyWith(
+    final id = await state.saveSubstance(
+      (widget.substance ?? Substance(name: name, emoji: emoji)).copyWith(
         name: name,
         emoji: emoji,
         unitName: unit,

@@ -6,7 +6,7 @@ import '../data/models.dart';
 import '../state/app_state.dart';
 import '../theme.dart';
 import '../util/formatters.dart';
-import 'drug_editor.dart';
+import 'substance_editor.dart';
 import 'widgets.dart';
 
 /// Opens the log sheet. Pass [intake] to edit, or [day] to pre-fill the date.
@@ -14,7 +14,7 @@ Future<void> showIntakeEditor(
   BuildContext context, {
   Intake? intake,
   DateTime? day,
-  int? presetDrugId,
+  int? presetSubstanceId,
 }) {
   return showModalBottomSheet<void>(
     context: context,
@@ -22,16 +22,16 @@ Future<void> showIntakeEditor(
     useSafeArea: true,
     showDragHandle: true,
     builder: (_) =>
-        _IntakeSheet(intake: intake, day: day, presetDrugId: presetDrugId),
+        _IntakeSheet(intake: intake, day: day, presetSubstanceId: presetSubstanceId),
   );
 }
 
 class _IntakeSheet extends StatefulWidget {
-  const _IntakeSheet({this.intake, this.day, this.presetDrugId});
+  const _IntakeSheet({this.intake, this.day, this.presetSubstanceId});
 
   final Intake? intake;
   final DateTime? day;
-  final int? presetDrugId;
+  final int? presetSubstanceId;
 
   @override
   State<_IntakeSheet> createState() => _IntakeSheetState();
@@ -39,8 +39,8 @@ class _IntakeSheet extends StatefulWidget {
 
 class _IntakeSheetState extends State<_IntakeSheet> {
   late DateTime _timestamp;
-  int? _drugId;
-  bool _missingDrug = false;
+  int? _substanceId;
+  bool _missingSubstance = false;
 
   final _quantity = TextEditingController();
   final _cost = TextEditingController();
@@ -62,7 +62,7 @@ class _IntakeSheetState extends State<_IntakeSheet> {
               existing.timestamp.hour,
               existing.timestamp.minute,
             );
-      _drugId = existing.drugId;
+      _substanceId = existing.substanceId;
       _quantity.text = existing.quantity.toString();
       if (existing.cost != null) _cost.text = _fmtCost(existing.cost!);
       _comments.text = existing.comments ?? '';
@@ -71,7 +71,7 @@ class _IntakeSheetState extends State<_IntakeSheet> {
       final base = widget.day ?? now;
       _timestamp =
           DateTime(base.year, base.month, base.day, now.hour, now.minute);
-      _drugId = widget.presetDrugId;
+      _substanceId = widget.presetSubstanceId;
       _quantity.text = '1';
     }
   }
@@ -149,13 +149,13 @@ class _IntakeSheetState extends State<_IntakeSheet> {
   }
 
   Future<void> _save() async {
-    if (_drugId == null) {
-      setState(() => _missingDrug = true);
+    if (_substanceId == null) {
+      setState(() => _missingSubstance = true);
       return;
     }
     final entry = Intake(
       id: widget.intake?.id,
-      drugId: _drugId!,
+      substanceId: _substanceId!,
       timestamp: _timestamp,
       quantity: _parseQuantity(_quantity),
       cost: _parseCost(_cost),
@@ -182,8 +182,8 @@ class _IntakeSheetState extends State<_IntakeSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final state = context.watch<AppState>();
-    final drugs = state.drugs;
-    final selected = state.drugById(_drugId);
+    final substances = state.substances;
+    final selected = state.substanceById(_substanceId);
     final unit = selected?.unitName ?? 'g';
 
     return Padding(
@@ -215,7 +215,7 @@ class _IntakeSheetState extends State<_IntakeSheet> {
               ],
             ),
             const SizedBox(height: 16),
-            if (drugs.isEmpty)
+            if (substances.isEmpty)
               Panel(
                 color: theme.colorScheme.onSurface.op(0.05),
                 child: Column(
@@ -233,9 +233,9 @@ class _IntakeSheetState extends State<_IntakeSheet> {
                     const SizedBox(height: 12),
                     OutlinedButton(
                       onPressed: () async {
-                        final id = await showDrugEditor(context);
+                        final id = await showSubstanceEditor(context);
                         if (id != null && mounted) {
-                          setState(() => _drugId = id);
+                          setState(() => _substanceId = id);
                         }
                       },
                       child: const Text('Add a substance'),
@@ -248,12 +248,12 @@ class _IntakeSheetState extends State<_IntakeSheet> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  for (final d in drugs)
+                  for (final d in substances)
                     ChoiceChip(
-                      selected: d.id == _drugId,
+                      selected: d.id == _substanceId,
                       onSelected: (_) => setState(() {
-                        _drugId = d.id;
-                        _missingDrug = false;
+                        _substanceId = d.id;
+                        _missingSubstance = false;
                       }),
                       selectedColor: d.color.op(0.2),
                       avatar: Text(
@@ -266,15 +266,15 @@ class _IntakeSheetState extends State<_IntakeSheet> {
                     avatar: const Icon(Icons.add, size: 17),
                     label: const Text('New'),
                     onPressed: () async {
-                      final id = await showDrugEditor(context);
+                      final id = await showSubstanceEditor(context);
                       if (id != null && mounted) {
-                        setState(() => _drugId = id);
+                        setState(() => _substanceId = id);
                       }
                     },
                   ),
                 ],
               ),
-            if (_missingDrug) ...[
+            if (_missingSubstance) ...[
               const SizedBox(height: 8),
               Text(
                 'Pick a substance first.',
@@ -352,7 +352,7 @@ class _IntakeSheetState extends State<_IntakeSheet> {
             const SizedBox(height: 22),
             FilledButton(
               onPressed:
-                  (drugs.isEmpty && _drugId == null) || isFutureDay(_timestamp)
+                  (substances.isEmpty && _substanceId == null) || isFutureDay(_timestamp)
                   ? null
                   : _save,
               child: Text(_isNew ? 'Save entry' : 'Save changes'),

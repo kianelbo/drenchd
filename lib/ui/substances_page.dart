@@ -4,11 +4,11 @@ import 'package:provider/provider.dart';
 import '../data/models.dart';
 import '../state/app_state.dart';
 import '../theme.dart';
-import 'drug_editor.dart';
+import 'substance_editor.dart';
 import 'widgets.dart';
 
-class DrugsPage extends StatelessWidget {
-  const DrugsPage({super.key});
+class SubstancesPage extends StatelessWidget {
+  const SubstancesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class DrugsPage extends StatelessWidget {
                 child: Text('Substances', style: theme.textTheme.headlineSmall),
               ),
               IconButton.filledTonal(
-                onPressed: () => showDrugEditor(context),
+                onPressed: () => showSubstanceEditor(context),
                 icon: const Icon(Icons.add),
                 tooltip: 'Add substance',
               ),
@@ -35,25 +35,25 @@ class DrugsPage extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Expanded(
-          child: state.drugs.isEmpty
+          child: state.substances.isEmpty
               ? EmptyState(
                   title: 'No substances yet',
                   message: 'Add the things you want to keep track of.',
                   action: FilledButton(
-                    onPressed: () => showDrugEditor(context),
+                    onPressed: () => showSubstanceEditor(context),
                     child: const Text('Add a substance'),
                   ),
                 )
               : ListView.builder(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-                  itemCount: state.drugs.length,
+                  itemCount: state.substances.length,
                   itemBuilder: (context, i) {
-                    final drug = state.drugs[i];
+                    final substance = state.substances[i];
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
-                      child: _DrugRow(
-                        drug: drug,
-                        uses: state.usage[drug.id] ?? 0,
+                      child: _SubstanceRow(
+                        substance: substance,
+                        uses: state.usage[substance.id] ?? 0,
                       ),
                     );
                   },
@@ -64,10 +64,10 @@ class DrugsPage extends StatelessWidget {
   }
 }
 
-class _DrugRow extends StatelessWidget {
-  const _DrugRow({required this.drug, required this.uses});
+class _SubstanceRow extends StatelessWidget {
+  const _SubstanceRow({required this.substance, required this.uses});
 
-  final Drug drug;
+  final Substance substance;
   final int uses;
 
   @override
@@ -81,26 +81,26 @@ class _DrugRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTheme.radius),
         child: InkWell(
           borderRadius: BorderRadius.circular(AppTheme.radius),
-          onTap: () => showDrugEditor(context, drug: drug),
+          onTap: () => showSubstanceEditor(context, substance: substance),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 6, 12),
             child: Row(
               children: [
-                EmojiBadge(emoji: drug.emoji, color: drug.color),
+                EmojiBadge(emoji: substance.emoji, color: substance.color),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(drug.name,
+                      Text(substance.name,
                           style: theme.textTheme.titleMedium,
                           overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 2),
                       Text(
                         uses == 0
-                            ? 'measured in ${drug.unitName}'
+                            ? 'measured in ${substance.unitName}'
                             : '$uses ${uses == 1 ? 'entry' : 'entries'} · '
-                                'measured in ${drug.unitName}',
+                                'measured in ${substance.unitName}',
                         style: theme.textTheme.bodySmall,
                       ),
                     ],
@@ -123,13 +123,13 @@ class _DrugRow extends StatelessWidget {
     final state = context.read<AppState>();
     final ok = await confirm(
       context,
-      title: 'Delete ${drug.name}?',
+      title: 'Delete ${substance.name}?',
       message: uses == 0
           ? 'This substance has no entries.'
           : 'Its $uses ${uses == 1 ? 'entry' : 'entries'} will be deleted too. '
               'This cannot be undone.',
     );
     if (!ok) return;
-    await state.deleteDrug(drug.id!);
+    await state.deleteSubstance(substance.id!);
   }
 }

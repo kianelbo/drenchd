@@ -1,5 +1,3 @@
-import 'dart:ui' show FontFeature;
-
 import 'package:flutter/material.dart';
 
 import '../theme.dart';
@@ -84,7 +82,7 @@ class SectionTitle extends StatelessWidget {
         Expanded(
           child: Text(text, style: Theme.of(context).textTheme.titleMedium),
         ),
-        if (trailing != null) trailing!,
+        ?trailing,
       ],
     );
   }

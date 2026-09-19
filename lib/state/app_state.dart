@@ -4,17 +4,17 @@ import '../data/models.dart';
 import '../data/repositories.dart';
 
 class AppState extends ChangeNotifier {
-  AppState({required DrugRepository drugs, required IntakeRepository intakes})
-      : _drugRepo = drugs,
+  AppState({required SubstanceRepository substances, required IntakeRepository intakes})
+      : _substanceRepo = substances,
         _intakeRepo = intakes;
 
-  final DrugRepository _drugRepo;
+  final SubstanceRepository _substanceRepo;
   final IntakeRepository _intakeRepo;
 
   bool ready = false;
 
-  List<Drug> drugs = const [];
-  Map<int, Drug> _byId = const {};
+  List<Substance> substances = const [];
+  Map<int, Substance> _byId = const {};
   Map<int, int> usage = const {};
 
   /// dayKey -> marker. Held entirely in memory; a personal journal is small.
@@ -24,12 +24,12 @@ class AppState extends ChangeNotifier {
   DateTime selectedDay = dateOnly(DateTime.now());
   List<DayGroup> dayGroups = const [];
 
-  Drug? drugById(int? id) => id == null ? null : _byId[id];
+  Substance? substanceById(int? id) => id == null ? null : _byId[id];
   DayMarker? markerFor(DateTime day) => markers[dayKeyOf(day)];
 
-  /// The drugs used most often overall — used for one-tap logging.
-  List<Drug> get quickPicks {
-    final list = drugs.toList()
+  /// The substances used most often overall — used for one-tap logging.
+  List<Substance> get quickPicks {
+    final list = substances.toList()
       ..sort((a, b) => (usage[b.id] ?? 0).compareTo(usage[a.id] ?? 0));
     return list.take(5).toList();
   }
@@ -90,7 +90,7 @@ class AppState extends ChangeNotifier {
     for (final g in dayGroups) {
       final remaining = g.intakes.where((i) => i.id != id).toList();
       if (remaining.isNotEmpty) {
-        trimmed.add(DayGroup(drug: g.drug, intakes: remaining));
+        trimmed.add(DayGroup(substance: g.substance, intakes: remaining));
       }
     }
     dayGroups = trimmed;
@@ -108,23 +108,23 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ------------------------------------------------------------------- drugs
+  // ------------------------------------------------------------------- substances
 
-  Future<int> saveDrug(Drug drug) async {
+  Future<int> saveSubstance(Substance substance) async {
     int id;
-    if (drug.id == null) {
-      id = await _drugRepo.insert(drug);
+    if (substance.id == null) {
+      id = await _substanceRepo.insert(substance);
     } else {
-      await _drugRepo.update(drug);
-      id = drug.id!;
+      await _substanceRepo.update(substance);
+      id = substance.id!;
     }
     await _reloadEverything();
     notifyListeners();
     return id;
   }
 
-  Future<void> deleteDrug(int id) async {
-    await _drugRepo.delete(id);
+  Future<void> deleteSubstance(int id) async {
+    await _substanceRepo.delete(id);
     await _reloadEverything();
     notifyListeners();
   }
@@ -133,22 +133,22 @@ class AppState extends ChangeNotifier {
 
   Future<DateTime?> earliestEntry() => _intakeRepo.earliestDay();
 
-  Future<RangeStats> statsFor(DateSpan span, Set<int> drugIds) async {
-    final rows = await _intakeRepo.statsByDrug(span, drugIds);
-    final dailyRows = await _intakeRepo.dailyTotals(span, drugIds);
+  Future<RangeStats> statsFor(DateSpan span, Set<int> substanceIds) async {
+    final rows = await _intakeRepo.statsBySubstance(span, substanceIds);
+    final dailyRows = await _intakeRepo.dailyTotals(span, substanceIds);
 
-    final perDrug = <DrugStat>[];
+    final perSubstance = <SubstanceStat>[];
     var total = 0;
     var cost = 0.0;
     for (final r in rows) {
-      final drug = _byId[r['drug_id'] as int];
-      if (drug == null) continue;
+      final substance = _byId[r['substance_id'] as int];
+      if (substance == null) continue;
       final c = (r['c'] as int?) ?? 0;
       final money = (r['cost'] as num?)?.toDouble();
       total += c;
       cost += money ?? 0;
-      perDrug.add(DrugStat(
-        drug: drug,
+      perSubstance.add(SubstanceStat(
+        substance: substance,
         count: c,
         quantity: r['q'] as int,
         cost: money,
@@ -173,7 +173,7 @@ class AppState extends ChangeNotifier {
       totalIntakes: total,
       totalCost: cost,
       activeDays: byDay.values.where((v) => v > 0).length,
-      perDrug: perDrug,
+      perSubstance: perSubstance,
       daily: _bucket(daily, 62),
     );
   }
@@ -198,42 +198,42 @@ class AppState extends ChangeNotifier {
   // ----------------------------------------------------------------- loading
 
   Future<void> _reloadEverything() async {
-    await _reloadDrugs();
+    await _reloadSubstances();
     await _reloadMarkers();
     await _reloadDay();
   }
 
-  Future<void> _reloadDrugs() async {
-    drugs = await _drugRepo.all();
+  Future<void> _reloadSubstances() async {
+    substances = await _substanceRepo.all();
     _byId = {
-      for (final d in drugs)
+      for (final d in substances)
         if (d.id != null) d.id!: d,
     };
-    usage = await _intakeRepo.usageByDrug();
+    usage = await _intakeRepo.usageBySubstance();
   }
 
   Future<void> _reloadMarkers() async {
-    final rows = await _intakeRepo.dayDrugCounts();
+    final rows = await _intakeRepo.daySubstanceCounts();
     final acc = <String, _DayAcc>{};
     for (final r in rows) {
       final day = r['day'] as String;
-      final drugId = r['drug_id'] as int;
+      final substanceId = r['substance_id'] as int;
       final count = (r['c'] as int?) ?? 0;
       final a = acc.putIfAbsent(day, _DayAcc.new);
       a.total += count;
       a.distinct += 1;
       if (count > a.topCount) {
         a.topCount = count;
-        a.topDrugId = drugId;
+        a.topSubstanceId = substanceId;
       }
     }
     markers = {
       for (final e in acc.entries)
-        if (_byId[e.value.topDrugId] != null)
+        if (_byId[e.value.topSubstanceId] != null)
           e.key: DayMarker(
-            topDrug: _byId[e.value.topDrugId]!,
+            topSubstance: _byId[e.value.topSubstanceId]!,
             totalCount: e.value.total,
-            distinctDrugs: e.value.distinct,
+            distinctSubstances: e.value.distinct,
           ),
     };
   }
@@ -242,12 +242,12 @@ class AppState extends ChangeNotifier {
     final intakes = await _intakeRepo.forDay(selectedDay);
     final grouped = <int, List<Intake>>{};
     for (final i in intakes) {
-      grouped.putIfAbsent(i.drugId, () => <Intake>[]).add(i);
+      grouped.putIfAbsent(i.substanceId, () => <Intake>[]).add(i);
     }
     final groups = <DayGroup>[];
-    grouped.forEach((drugId, list) {
-      final drug = _byId[drugId];
-      if (drug != null) groups.add(DayGroup(drug: drug, intakes: list));
+    grouped.forEach((substanceId, list) {
+      final substance = _byId[substanceId];
+      if (substance != null) groups.add(DayGroup(substance: substance, intakes: list));
     });
     groups.sort((a, b) {
       final byCount = b.count.compareTo(a.count);
@@ -262,5 +262,5 @@ class _DayAcc {
   int total = 0;
   int distinct = 0;
   int topCount = 0;
-  int topDrugId = -1;
+  int topSubstanceId = -1;
 }

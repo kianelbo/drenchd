@@ -2,27 +2,27 @@ import 'package:sqflite/sqflite.dart';
 
 import 'models.dart';
 
-class DrugRepository {
+class SubstanceRepository {
   final Database _db;
-  DrugRepository(this._db);
+  SubstanceRepository(this._db);
 
-  Future<List<Drug>> all() async {
-    final rows = await _db.query('drugs', orderBy: 'name COLLATE NOCASE ASC');
-    return rows.map(Drug.fromMap).toList();
+  Future<List<Substance>> all() async {
+    final rows = await _db.query('substances', orderBy: 'name COLLATE NOCASE ASC');
+    return rows.map(Substance.fromMap).toList();
   }
 
-  Future<int> insert(Drug drug) => _db.insert('drugs', drug.toMap());
+  Future<int> insert(Substance substance) => _db.insert('substances', substance.toMap());
 
-  Future<void> update(Drug drug) => _db.update(
-        'drugs',
-        drug.toMap(),
+  Future<void> update(Substance substance) => _db.update(
+        'substances',
+        substance.toMap(),
         where: 'id = ?',
-        whereArgs: [drug.id],
+        whereArgs: [substance.id],
       );
 
-  /// Cascades to every intake of this drug.
+  /// Cascades to every intake of this substance.
   Future<void> delete(int id) =>
-      _db.delete('drugs', where: 'id = ?', whereArgs: [id]);
+      _db.delete('substances', where: 'id = ?', whereArgs: [id]);
 }
 
 class IntakeRepository {
@@ -51,23 +51,23 @@ class IntakeRepository {
     return rows.map(Intake.fromMap).toList();
   }
 
-  /// Every (day, drug, count) triple, ordered so the busiest drug of each day
+  /// Every (day, substance, count) triple, ordered so the busiest substance of each day
   /// comes first. The dataset is tiny for a personal journal, so loading it in
   /// one pass keeps month-to-month swiping instant.
-  Future<List<Map<String, Object?>>> dayDrugCounts() {
+  Future<List<Map<String, Object?>>> daySubstanceCounts() {
     return _db.rawQuery(
-      'SELECT day, drug_id, COUNT(*) AS c FROM intakes '
-      'GROUP BY day, drug_id '
-      'ORDER BY day ASC, c DESC, drug_id ASC',
+      'SELECT day, substance_id, COUNT(*) AS c FROM intakes '
+      'GROUP BY day, substance_id '
+      'ORDER BY day ASC, c DESC, substance_id ASC',
     );
   }
 
-  Future<Map<int, int>> usageByDrug() async {
+  Future<Map<int, int>> usageBySubstance() async {
     final rows = await _db.rawQuery(
-      'SELECT drug_id, COUNT(*) AS c FROM intakes GROUP BY drug_id',
+      'SELECT substance_id, COUNT(*) AS c FROM intakes GROUP BY substance_id',
     );
     return {
-      for (final r in rows) r['drug_id'] as int: (r['c'] as int?) ?? 0,
+      for (final r in rows) r['substance_id'] as int: (r['c'] as int?) ?? 0,
     };
   }
 
@@ -78,25 +78,22 @@ class IntakeRepository {
     return t == null ? null : DateTime.fromMillisecondsSinceEpoch(t);
   }
 
-  Future<List<Map<String, Object?>>> statsByDrug(
-    DateSpan span,
-    Set<int> drugIds,
-  ) {
-    final (where, args) = _rangeWhere(span, drugIds);
+  Future<List<Map<String, Object?>>> statsBySubstance(DateSpan span, Set<int> substanceIds) {
+    final (where, args) = _rangeWhere(span, substanceIds);
     return _db.rawQuery(
-      'SELECT drug_id, COUNT(*) AS c, SUM(quantity) AS q, SUM(cost) AS cost, '
+      'SELECT substance_id, COUNT(*) AS c, SUM(quantity) AS q, SUM(cost) AS cost, '
       'COUNT(DISTINCT day) AS days '
       'FROM intakes WHERE $where '
-      'GROUP BY drug_id ORDER BY c DESC',
+      'GROUP BY substance_id ORDER BY c DESC',
       args,
     );
   }
 
   Future<List<Map<String, Object?>>> dailyTotals(
     DateSpan span,
-    Set<int> drugIds,
+    Set<int> substanceIds,
   ) {
-    final (where, args) = _rangeWhere(span, drugIds);
+    final (where, args) = _rangeWhere(span, substanceIds);
     return _db.rawQuery(
       'SELECT day, COUNT(*) AS c FROM intakes WHERE $where '
       'GROUP BY day ORDER BY day ASC',
@@ -104,13 +101,13 @@ class IntakeRepository {
     );
   }
 
-  (String, List<Object?>) _rangeWhere(DateSpan span, Set<int> drugIds) {
+  (String, List<Object?>) _rangeWhere(DateSpan span, Set<int> substanceIds) {
     final buffer = StringBuffer('day >= ? AND day <= ?');
     final args = <Object?>[dayKeyOf(span.start), dayKeyOf(span.end)];
-    if (drugIds.isNotEmpty) {
-      final marks = List.filled(drugIds.length, '?').join(',');
-      buffer.write(' AND drug_id IN ($marks)');
-      args.addAll(drugIds);
+    if (substanceIds.isNotEmpty) {
+      final marks = List.filled(substanceIds.length, '?').join(',');
+      buffer.write(' AND substance_id IN ($marks)');
+      args.addAll(substanceIds);
     }
     return (buffer.toString(), args);
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'data/app_database.dart';
+import 'data/database.dart';
 import 'data/repositories.dart';
 import 'state/app_state.dart';
 import 'theme.dart';
@@ -12,7 +12,7 @@ Future<void> main() async {
 
   final db = await AppDatabase.instance.database;
   final state = AppState(
-    drugs: DrugRepository(db),
+    substances: SubstanceRepository(db),
     intakes: IntakeRepository(db),
   );
   await state.bootstrap();

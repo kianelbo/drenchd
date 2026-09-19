@@ -3,8 +3,6 @@ import 'package:sqflite/sqflite.dart';
 
 import '../util/color.dart';
 
-/// Opens (and creates) the local SQLite file. Nothing here ever touches a
-/// network: the database lives in the app's private sandbox directory.
 class AppDatabase {
   AppDatabase._();
   static final AppDatabase instance = AppDatabase._();
@@ -32,7 +30,7 @@ class AppDatabase {
 
   Future<void> _create(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE drugs (
+      CREATE TABLE substances (
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
         name        TEXT    NOT NULL,
         emoji       TEXT    NOT NULL,
@@ -44,7 +42,7 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE intakes (
         id        INTEGER PRIMARY KEY AUTOINCREMENT,
-        drug_id   INTEGER NOT NULL REFERENCES drugs(id) ON DELETE CASCADE,
+        substance_id   INTEGER NOT NULL REFERENCES substances(id) ON DELETE CASCADE,
         ts        INTEGER NOT NULL,
         day       TEXT    NOT NULL,
         quantity  INTEGER NOT NULL DEFAULT 1,
@@ -55,12 +53,12 @@ class AppDatabase {
 
     await db.execute('CREATE INDEX idx_intakes_day ON intakes(day)');
     await db.execute('CREATE INDEX idx_intakes_ts ON intakes(ts)');
-    await db.execute('CREATE INDEX idx_intakes_drug ON intakes(drug_id)');
+    await db.execute('CREATE INDEX idx_intakes_substance ON intakes(substance_id)');
 
     final batch = db.batch();
     for (var i = 0; i < _seed.length; i++) {
       final s = _seed[i];
-      batch.insert('drugs', {
+      batch.insert('substances', {
         'name': s.$1,
         'emoji': s.$2,
         'unit_name': s.$3,
@@ -79,7 +77,7 @@ class AppDatabase {
   Future<void> eraseAll() async {
     final db = await database;
     await db.delete('intakes');
-    await db.delete('drugs');
+    await db.delete('substances');
   }
 }
 

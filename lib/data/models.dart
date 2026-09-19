@@ -18,14 +18,14 @@ bool isFutureDay(DateTime d) => dateOnly(d).isAfter(dateOnly(DateTime.now()));
 
 /// A user-defined substance.
 @immutable
-class Drug {
+class Substance {
   final int? id;
   final String name;
   final String emoji;
   final String unitName;
   final int colorValue;
 
-  const Drug({
+  const Substance({
     this.id,
     required this.name,
     required this.emoji,
@@ -35,14 +35,14 @@ class Drug {
 
   Color get color => Color(colorValue);
 
-  Drug copyWith({
+  Substance copyWith({
     int? id,
     String? name,
     String? emoji,
     String? unitName,
     int? colorValue,
   }) {
-    return Drug(
+    return Substance(
       id: id ?? this.id,
       name: name ?? this.name,
       emoji: emoji ?? this.emoji,
@@ -59,7 +59,7 @@ class Drug {
     'color': colorValue,
   };
 
-  static Drug fromMap(Map<String, Object?> m) => Drug(
+  static Substance fromMap(Map<String, Object?> m) => Substance(
     id: m['id'] as int?,
     name: m['name'] as String,
     emoji: m['emoji'] as String,
@@ -73,7 +73,7 @@ class Drug {
 @immutable
 class Intake {
   final int? id;
-  final int drugId;
+  final int substanceId;
   final DateTime timestamp;
   final int quantity;
   final double? cost;
@@ -81,7 +81,7 @@ class Intake {
 
   const Intake({
     this.id,
-    required this.drugId,
+    required this.substanceId,
     required this.timestamp,
     required this.quantity,
     this.cost,
@@ -93,7 +93,7 @@ class Intake {
     final c = comments?.trim();
     return {
       if (id != null) 'id': id,
-      'drug_id': drugId,
+      'substance_id': substanceId,
       'ts': timestamp.millisecondsSinceEpoch,
       'day': dayKeyOf(timestamp),
       'quantity': quantity,
@@ -104,7 +104,7 @@ class Intake {
 
   static Intake fromMap(Map<String, Object?> m) => Intake(
     id: m['id'] as int?,
-    drugId: m['drug_id'] as int,
+    substanceId: m['substance_id'] as int,
     timestamp: DateTime.fromMillisecondsSinceEpoch(m['ts'] as int),
     quantity: m['quantity'] as int,
     cost: (m['cost'] as num?)?.toDouble(),
@@ -115,23 +115,23 @@ class Intake {
 /// What a calendar cell needs to know.
 @immutable
 class DayMarker {
-  final Drug topDrug;
+  final Substance topSubstance;
   final int totalCount;
-  final int distinctDrugs;
+  final int distinctSubstances;
 
   const DayMarker({
-    required this.topDrug,
+    required this.topSubstance,
     required this.totalCount,
-    required this.distinctDrugs,
+    required this.distinctSubstances,
   });
 }
 
-/// One drug's entries within a single day.
+/// One substance's entries within a single day.
 class DayGroup {
-  final Drug drug;
+  final Substance substance;
   final List<Intake> intakes;
 
-  DayGroup({required this.drug, required this.intakes});
+  DayGroup({required this.substance, required this.intakes});
 
   int get count => intakes.length;
 
@@ -169,15 +169,15 @@ class DayCount {
 }
 
 @immutable
-class DrugStat {
-  final Drug drug;
+class SubstanceStat {
+  final Substance substance;
   final int count;
   final int quantity;
   final double? cost;
   final int daysUsed;
 
-  const DrugStat({
-    required this.drug,
+  const SubstanceStat({
+    required this.substance,
     required this.count,
     required this.quantity,
     required this.cost,
@@ -191,7 +191,7 @@ class RangeStats {
   final int totalIntakes;
   final double totalCost;
   final int activeDays;
-  final List<DrugStat> perDrug;
+  final List<SubstanceStat> perSubstance;
   final List<DayCount> daily;
 
   const RangeStats({
@@ -199,7 +199,7 @@ class RangeStats {
     required this.totalIntakes,
     required this.totalCost,
     required this.activeDays,
-    required this.perDrug,
+    required this.perSubstance,
     required this.daily,
   });
 

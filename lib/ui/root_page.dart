@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../data/models.dart';
 import '../state/app_state.dart';
 import 'calendar_page.dart';
-import 'drugs_page.dart';
+import 'substances_page.dart';
 import 'intake_editor.dart';
 import 'stats_page.dart';
 
@@ -33,7 +33,7 @@ class _RootPageState extends State<RootPage> {
         bottom: false,
         child: IndexedStack(
           index: _tab,
-          children: const [CalendarPage(), StatsPage(), DrugsPage()],
+          children: const [CalendarPage(), StatsPage(), SubstancesPage()],
         ),
       ),
       floatingActionButton: _tab == 0 && canLogSelectedDay

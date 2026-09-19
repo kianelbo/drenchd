@@ -30,7 +30,7 @@ class StatsPage extends StatefulWidget {
 class _StatsPageState extends State<StatsPage> {
   _Preset _preset = _Preset.month;
   DateSpan _span = _spanForDays(30);
-  final Set<int> _drugFilter = <int>{};
+  final Set<int> _substanceFilter = <int>{};
 
   AppState? _state;
   Future<RangeStats>? _future;
@@ -65,7 +65,7 @@ class _StatsPageState extends State<StatsPage> {
     final state = _state;
     if (state == null || !mounted) return;
     setState(() {
-      _future = state.statsFor(_span, Set<int>.from(_drugFilter));
+      _future = state.statsFor(_span, Set<int>.from(_substanceFilter));
     });
   }
 
@@ -151,7 +151,7 @@ class _StatsPageState extends State<StatsPage> {
             ),
           ),
         ),
-        if (state.drugs.isNotEmpty)
+        if (state.substances.isNotEmpty)
           SliverToBoxAdapter(
             child: SizedBox(
               height: 46,
@@ -161,25 +161,25 @@ class _StatsPageState extends State<StatsPage> {
                 children: [
                   ChoiceChip(
                     label: const Text('Everything'),
-                    selected: _drugFilter.isEmpty,
+                    selected: _substanceFilter.isEmpty,
                     onSelected: (_) {
-                      _drugFilter.clear();
+                      _substanceFilter.clear();
                       _recompute();
                     },
                   ),
                   const SizedBox(width: 8),
-                  for (final d in state.drugs) ...[
+                  for (final d in state.substances) ...[
                     FilterChip(
                       avatar:
                           Text(d.emoji, style: const TextStyle(fontSize: 14)),
                       label: Text(d.name),
-                      selected: _drugFilter.contains(d.id),
+                      selected: _substanceFilter.contains(d.id),
                       selectedColor: d.color.op(0.2),
                       onSelected: (on) {
                         if (on) {
-                          _drugFilter.add(d.id!);
+                          _substanceFilter.add(d.id!);
                         } else {
-                          _drugFilter.remove(d.id);
+                          _substanceFilter.remove(d.id);
                         }
                         _recompute();
                       },
@@ -225,9 +225,9 @@ class _StatsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final maxCount = stats.perDrug.isEmpty
+    final maxCount = stats.perSubstance.isEmpty
         ? 1
-        : stats.perDrug.map((e) => e.count).reduce((a, b) => a > b ? a : b);
+        : stats.perSubstance.map((e) => e.count).reduce((a, b) => a > b ? a : b);
     final perDay = stats.totalIntakes / stats.span.days;
 
     return Padding(
@@ -294,7 +294,7 @@ class _StatsBody extends StatelessWidget {
           const SizedBox(height: 18),
           const SectionTitle('Breakdown'),
           const SizedBox(height: 10),
-          for (final stat in stats.perDrug) ...[
+          for (final stat in stats.perSubstance) ...[
             _BreakdownRow(stat: stat, maxCount: maxCount),
             const SizedBox(height: 10),
           ],
@@ -345,23 +345,23 @@ class _ActivityChart extends StatelessWidget {
 class _BreakdownRow extends StatelessWidget {
   const _BreakdownRow({required this.stat, required this.maxCount});
 
-  final DrugStat stat;
+  final SubstanceStat stat;
   final int maxCount;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final drug = stat.drug;
+    final substance = stat.substance;
     final meta = <String>[
       '${stat.daysUsed} ${stat.daysUsed == 1 ? 'day' : 'days'}',
-      fmtAmount(stat.quantity, drug.unitName),
+      fmtAmount(stat.quantity, substance.unitName),
       if (stat.cost != null && stat.cost! > 0) fmtMoney(stat.cost!),
     ];
 
     return Panel(
       child: Row(
         children: [
-          EmojiBadge(emoji: drug.emoji, color: drug.color),
+          EmojiBadge(emoji: substance.emoji, color: substance.color),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -370,14 +370,14 @@ class _BreakdownRow extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(drug.name,
+                      child: Text(substance.name,
                           style: theme.textTheme.titleMedium,
                           overflow: TextOverflow.ellipsis),
                     ),
                     Text(
                       '×${stat.count}',
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: drug.color,
+                        color: substance.color,
                         fontFeatures: const [FontFeature.tabularFigures()],
                       ),
                     ),
@@ -386,7 +386,7 @@ class _BreakdownRow extends StatelessWidget {
                 const SizedBox(height: 6),
                 ShareBar(
                   fraction: maxCount == 0 ? 0 : stat.count / maxCount,
-                  color: drug.color,
+                  color: substance.color,
                 ),
                 const SizedBox(height: 6),
                 Text(meta.join(' · '), style: theme.textTheme.bodySmall),
