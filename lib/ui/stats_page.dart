@@ -1,5 +1,3 @@
-import 'dart:ui' show FontFeature;
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -356,7 +354,7 @@ class _BreakdownRow extends StatelessWidget {
     final drug = stat.drug;
     final meta = <String>[
       '${stat.daysUsed} ${stat.daysUsed == 1 ? 'day' : 'days'}',
-      if (stat.quantity != null) fmtAmount(stat.quantity, drug.unitName)!,
+      fmtAmount(stat.quantity, drug.unitName),
       if (stat.cost != null && stat.cost! > 0) fmtMoney(stat.cost!),
     ];
 

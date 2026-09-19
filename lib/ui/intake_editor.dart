@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/models.dart';
@@ -62,9 +63,7 @@ class _IntakeSheetState extends State<_IntakeSheet> {
               existing.timestamp.minute,
             );
       _drugId = existing.drugId;
-      if (existing.quantity != null) {
-        _quantity.text = existing.quantity!.toString();
-      }
+      _quantity.text = existing.quantity.toString();
       if (existing.cost != null) _cost.text = _fmtCost(existing.cost!);
       _comments.text = existing.comments ?? '';
     } else {
@@ -73,6 +72,7 @@ class _IntakeSheetState extends State<_IntakeSheet> {
       _timestamp =
           DateTime(base.year, base.month, base.day, now.hour, now.minute);
       _drugId = widget.presetDrugId;
+      _quantity.text = '1';
     }
   }
 
@@ -94,11 +94,11 @@ class _IntakeSheetState extends State<_IntakeSheet> {
     return s;
   }
 
-  int? _parseQuantity(TextEditingController c) {
+  int _parseQuantity(TextEditingController c) {
     final raw = c.text.trim();
-    if (raw.isEmpty) return null;
+    if (raw.isEmpty) return 0;
     final v = int.tryParse(raw);
-    return (v == null || v < 0) ? null : v;
+    return (v == null || v < 0) ? 0 : v;
   }
 
   double? _parseCost(TextEditingController c) {
@@ -310,6 +310,7 @@ class _IntakeSheetState extends State<_IntakeSheet> {
                 Expanded(
                   child: TextField(
                     controller: _quantity,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: false,
                     ),

@@ -75,7 +75,7 @@ class Intake {
   final int? id;
   final int drugId;
   final DateTime timestamp;
-  final int? quantity;
+  final int quantity;
   final double? cost;
   final String? comments;
 
@@ -83,31 +83,11 @@ class Intake {
     this.id,
     required this.drugId,
     required this.timestamp,
-    this.quantity,
+    required this.quantity,
     this.cost,
     this.comments,
   });
 
-  Intake copyWith({
-    int? id,
-    int? drugId,
-    DateTime? timestamp,
-    int? quantity,
-    double? cost,
-    String? comments,
-    bool clearQuantity = false,
-    bool clearCost = false,
-    bool clearComments = false,
-  }) {
-    return Intake(
-      id: id ?? this.id,
-      drugId: drugId ?? this.drugId,
-      timestamp: timestamp ?? this.timestamp,
-      quantity: clearQuantity ? null : (quantity ?? this.quantity),
-      cost: clearCost ? null : (cost ?? this.cost),
-      comments: clearComments ? null : (comments ?? this.comments),
-    );
-  }
 
   Map<String, Object?> toMap() {
     final c = comments?.trim();
@@ -126,7 +106,7 @@ class Intake {
     id: m['id'] as int?,
     drugId: m['drug_id'] as int,
     timestamp: DateTime.fromMillisecondsSinceEpoch(m['ts'] as int),
-    quantity: (m['quantity'] as num?)?.toInt(),
+    quantity: m['quantity'] as int,
     cost: (m['cost'] as num?)?.toDouble(),
     comments: m['comments'] as String?,
   );
@@ -155,10 +135,10 @@ class DayGroup {
 
   int get count => intakes.length;
 
-  int? get totalQuantity {
-    int? sum;
+  int get totalQuantity {
+    int sum = 0;
     for (final i in intakes) {
-      if (i.quantity != null) sum = (sum ?? 0) + i.quantity!;
+      sum += i.quantity;
     }
     return sum;
   }
@@ -192,7 +172,7 @@ class DayCount {
 class DrugStat {
   final Drug drug;
   final int count;
-  final int? quantity;
+  final int quantity;
   final double? cost;
   final int daysUsed;
 

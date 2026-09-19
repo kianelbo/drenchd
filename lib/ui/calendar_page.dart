@@ -289,8 +289,7 @@ class _DayGroupTileState extends State<DayGroupTile> {
     final drug = group.drug;
 
     final details = <String>[
-      if (group.totalQuantity != null)
-        fmtAmount(group.totalQuantity, drug.unitName)!,
+      fmtAmount(group.totalQuantity, drug.unitName),
       if (group.totalCost != null) fmtMoney(group.totalCost!),
     ];
 
@@ -385,7 +384,7 @@ class _IntakeRow extends StatelessWidget {
     final theme = Theme.of(context);
     final amount = fmtAmount(intake.quantity, drug.unitName);
     final cost = intake.cost == null ? null : fmtMoney(intake.cost!);
-    final meta = [?amount, ?cost];
+    final meta = [amount, ?cost];
 
     return Dismissible(
       key: ValueKey('intake-${intake.id}'),

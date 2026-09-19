@@ -47,7 +47,7 @@ class AppDatabase {
         drug_id   INTEGER NOT NULL REFERENCES drugs(id) ON DELETE CASCADE,
         ts        INTEGER NOT NULL,
         day       TEXT    NOT NULL,
-        quantity  INTEGER,
+        quantity  INTEGER NOT NULL DEFAULT 1,
         cost      REAL,
         comments  TEXT
       )
@@ -95,15 +95,11 @@ const List<(String, String, String)> _seed = [
   ('Ketamine', '🪐', 'mg'),
   ('2C-B', '🍬', 'mg'),
   ('DMT', '👁️', 'mg'),
-  ('5-MeO-DMT', '🐸', 'mg'),
   ('Mescaline', '🌵', 'mg'),
-  ('Nitrous oxide', '🎈', 'puff(s)'),
-  ('Opium', '💤', 'g'),
-  ('Morphine', '😌', 'g'),
-  ('Kratom', '🌱', 'g'),
+  ('Nitrous oxide', '🎈', 'balloon(s)'),
+  ('Opium', '🟫', 'g'),
+  ('Morphine', '💤', 'mg'),
   ('Salvia', '🪻', 'g'),
-  ('Benzodiazepines', '💊', 'mg'),
-  ('Beer', '🍺', 'ml'),
   ('Alcohol', '🍷', 'ml'),
   ('Nicotine', '🚬', 'cig(s)'),
 ];

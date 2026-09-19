@@ -3,8 +3,8 @@ import 'package:sqflite/sqflite.dart';
 import 'models.dart';
 
 class DrugRepository {
-  DrugRepository(this._db);
   final Database _db;
+  DrugRepository(this._db);
 
   Future<List<Drug>> all() async {
     final rows = await _db.query('drugs', orderBy: 'name COLLATE NOCASE ASC');

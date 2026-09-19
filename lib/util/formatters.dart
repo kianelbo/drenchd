@@ -14,9 +14,7 @@ String fmtMoney(double value) {
   return '${whole ? value.toStringAsFixed(0) : value.toStringAsFixed(2)}$kCurrency';
 }
 
-/// "1.5 g", or null when no quantity was recorded.
-String? fmtAmount(num? quantity, String unit) =>
-    quantity == null ? null : '$quantity $unit';
+String fmtAmount(num quantity, String unit) => '$quantity $unit';
 
 String relativeDayLabel(DateTime day) {
   final today = DateTime.now();
