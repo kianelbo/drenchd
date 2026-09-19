@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../data/models.dart';
 import '../state/app_state.dart';
 import 'calendar_page.dart';
 import 'drugs_page.dart';
@@ -25,19 +26,17 @@ class _RootPageState extends State<RootPage> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final canLogSelectedDay = !isFutureDay(state.selectedDay);
+
     return Scaffold(
       body: SafeArea(
         bottom: false,
         child: IndexedStack(
           index: _tab,
-          children: const [
-            CalendarPage(),
-            StatsPage(),
-            DrugsPage(),
-          ],
+          children: const [CalendarPage(), StatsPage(), DrugsPage()],
         ),
       ),
-      floatingActionButton: _tab == 0
+      floatingActionButton: _tab == 0 && canLogSelectedDay
           ? FloatingActionButton.extended(
               onPressed: () =>
                   showIntakeEditor(context, day: state.selectedDay),

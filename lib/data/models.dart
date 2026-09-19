@@ -14,6 +14,8 @@ String dayKeyOf(DateTime d) =>
 
 DateTime dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
+bool isFutureDay(DateTime d) => dateOnly(d).isAfter(dateOnly(DateTime.now()));
+
 /// A user-defined substance.
 @immutable
 class Drug {
@@ -50,20 +52,21 @@ class Drug {
   }
 
   Map<String, Object?> toMap() => {
-        if (id != null) 'id': id,
-        'name': name,
-        'emoji': emoji,
-        'unit_name': unitName,
-        'color': colorValue,
-      };
+    if (id != null) 'id': id,
+    'name': name,
+    'emoji': emoji,
+    'unit_name': unitName,
+    'color': colorValue,
+  };
 
   static Drug fromMap(Map<String, Object?> m) => Drug(
-        id: m['id'] as int?,
-        name: m['name'] as String,
-        emoji: m['emoji'] as String,
-        unitName: (m['unit_name'] as String?) ?? 'g',
-        colorValue: (m['color'] as int?) ?? fallbackEmojiColor(m['emoji'] as String),
-      );
+    id: m['id'] as int?,
+    name: m['name'] as String,
+    emoji: m['emoji'] as String,
+    unitName: (m['unit_name'] as String?) ?? 'g',
+    colorValue:
+        (m['color'] as int?) ?? fallbackEmojiColor(m['emoji'] as String),
+  );
 }
 
 /// A single consumption event.
@@ -120,13 +123,13 @@ class Intake {
   }
 
   static Intake fromMap(Map<String, Object?> m) => Intake(
-        id: m['id'] as int?,
-        drugId: m['drug_id'] as int,
-        timestamp: DateTime.fromMillisecondsSinceEpoch(m['ts'] as int),
-        quantity: (m['quantity'] as num?)?.toInt(),
-        cost: (m['cost'] as num?)?.toDouble(),
-        comments: m['comments'] as String?,
-      );
+    id: m['id'] as int?,
+    drugId: m['drug_id'] as int,
+    timestamp: DateTime.fromMillisecondsSinceEpoch(m['ts'] as int),
+    quantity: (m['quantity'] as num?)?.toInt(),
+    cost: (m['cost'] as num?)?.toDouble(),
+    comments: m['comments'] as String?,
+  );
 }
 
 /// What a calendar cell needs to know.

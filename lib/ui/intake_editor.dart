@@ -20,11 +20,8 @@ Future<void> showIntakeEditor(
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    builder: (_) => _IntakeSheet(
-      intake: intake,
-      day: day,
-      presetDrugId: presetDrugId,
-    ),
+    builder: (_) =>
+        _IntakeSheet(intake: intake, day: day, presetDrugId: presetDrugId),
   );
 }
 
@@ -55,7 +52,15 @@ class _IntakeSheetState extends State<_IntakeSheet> {
     super.initState();
     final existing = widget.intake;
     if (existing != null) {
-      _timestamp = existing.timestamp;
+      _timestamp = !isFutureDay(existing.timestamp)
+          ? existing.timestamp
+          : DateTime(
+              dateOnly(DateTime.now()).year,
+              dateOnly(DateTime.now()).month,
+              dateOnly(DateTime.now()).day,
+              existing.timestamp.hour,
+              existing.timestamp.minute,
+            );
       _drugId = existing.drugId;
       if (existing.quantity != null) {
         _quantity.text = existing.quantity!.toString();
@@ -106,15 +111,22 @@ class _IntakeSheetState extends State<_IntakeSheet> {
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: _timestamp,
+      initialDate: !isFutureDay(_timestamp)
+          ? _timestamp
+          : dateOnly(DateTime.now()),
       firstDate: DateTime(2015),
-      lastDate: DateTime(DateTime.now().year + 2, 12, 31),
+      lastDate: dateOnly(DateTime.now()),
       initialEntryMode: DatePickerEntryMode.calendarOnly,
     );
     if (picked == null) return;
     setState(() {
-      _timestamp = DateTime(picked.year, picked.month, picked.day,
-          _timestamp.hour, _timestamp.minute);
+      _timestamp = DateTime(
+        picked.year,
+        picked.month,
+        picked.day,
+        _timestamp.hour,
+        _timestamp.minute,
+      );
     });
   }
 
@@ -126,8 +138,13 @@ class _IntakeSheetState extends State<_IntakeSheet> {
     );
     if (picked == null) return;
     setState(() {
-      _timestamp = DateTime(_timestamp.year, _timestamp.month, _timestamp.day,
-          picked.hour, picked.minute);
+      _timestamp = DateTime(
+        _timestamp.year,
+        _timestamp.month,
+        _timestamp.day,
+        picked.hour,
+        picked.minute,
+      );
     });
   }
 
@@ -204,11 +221,15 @@ class _IntakeSheetState extends State<_IntakeSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('No substances yet',
-                        style: theme.textTheme.titleMedium),
+                    Text(
+                      'No substances yet',
+                      style: theme.textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 4),
-                    Text('Add one to start logging.',
-                        style: theme.textTheme.bodySmall),
+                    Text(
+                      'Add one to start logging.',
+                      style: theme.textTheme.bodySmall,
+                    ),
                     const SizedBox(height: 12),
                     OutlinedButton(
                       onPressed: () async {
@@ -235,8 +256,10 @@ class _IntakeSheetState extends State<_IntakeSheet> {
                         _missingDrug = false;
                       }),
                       selectedColor: d.color.op(0.2),
-                      avatar: Text(d.emoji,
-                          style: const TextStyle(fontSize: 15)),
+                      avatar: Text(
+                        d.emoji,
+                        style: const TextStyle(fontSize: 15),
+                      ),
                       label: Text(d.name),
                     ),
                   ActionChip(
@@ -255,8 +278,9 @@ class _IntakeSheetState extends State<_IntakeSheet> {
               const SizedBox(height: 8),
               Text(
                 'Pick a substance first.',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: theme.colorScheme.error),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
               ),
             ],
             const SizedBox(height: 20),
@@ -286,8 +310,9 @@ class _IntakeSheetState extends State<_IntakeSheet> {
                 Expanded(
                   child: TextField(
                     controller: _quantity,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: false,
+                    ),
                     decoration: InputDecoration(
                       labelText: 'Quantity',
                       hintText: 'optional',
@@ -299,8 +324,9 @@ class _IntakeSheetState extends State<_IntakeSheet> {
                 Expanded(
                   child: TextField(
                     controller: _cost,
-                    keyboardType:
-                        const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: const InputDecoration(
                       labelText: 'Cost',
                       hintText: 'optional',
@@ -324,7 +350,10 @@ class _IntakeSheetState extends State<_IntakeSheet> {
             ),
             const SizedBox(height: 22),
             FilledButton(
-              onPressed: drugs.isEmpty && _drugId == null ? null : _save,
+              onPressed:
+                  (drugs.isEmpty && _drugId == null) || isFutureDay(_timestamp)
+                  ? null
+                  : _save,
               child: Text(_isNew ? 'Save entry' : 'Save changes'),
             ),
             const SizedBox(height: 8),
@@ -349,7 +378,8 @@ class _FieldButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fill = theme.inputDecorationTheme.fillColor ??
+    final fill =
+        theme.inputDecorationTheme.fillColor ??
         theme.colorScheme.onSurface.op(0.05);
     return Material(
       color: fill,
