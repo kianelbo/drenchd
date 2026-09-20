@@ -1,15 +1,15 @@
 # Drenchd
 
-A Flutter app for logging personal substance use. Everything lives in a local
-SQLite file inside the app sandbox. There is no account, no sync and no network
-code anywhere in the project.
+Cross-platform app for logging personal substance use.
+It works totally offline, everything is stored locally.
 
----
 
-## Prerequisites
+## Build
 
 ```bash
-flutter --version     # 3.24 or newer
-flutter doctor        # fix anything it flags for android / ios
+flutter --version       # 3.24 or newer
+flutter doctor          # fix anything it flags for android / ios
+flutter pub get
+
+flutter run             # or flutter build
 ```
-You need Xcode (iOS) and/or Android Studio + an SDK (Android).
