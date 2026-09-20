@@ -32,6 +32,7 @@ class _SubstanceSheetState extends State<_SubstanceSheet> {
       TextEditingController(text: widget.substance?.emoji ?? '💊');
   late final TextEditingController _unit =
       TextEditingController(text: widget.substance?.unitName ?? 'g');
+  bool _habitual = false;
 
   String? _rowError;
 
@@ -52,6 +53,12 @@ class _SubstanceSheetState extends State<_SubstanceSheet> {
     if (_isEmojiEmpty) return 'Add an icon.';
     if (_isUnitEmpty) return 'Add a unit.';
     return null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _habitual = widget.substance?.habitual ?? false;
   }
 
   @override
@@ -82,6 +89,7 @@ class _SubstanceSheetState extends State<_SubstanceSheet> {
         emoji: emoji,
         unitName: unit,
         colorValue: color,
+        habitual: _habitual,
       ),
     );
     if (mounted) Navigator.pop(context, id);
@@ -150,18 +158,42 @@ class _SubstanceSheetState extends State<_SubstanceSheet> {
               ),
             ],
             const SizedBox(height: 20),
-            TextField(
-              controller: _unit,
-              inputFormatters: [LengthLimitingTextInputFormatter(12)],
-              decoration: InputDecoration(
-                labelText: 'Unit',
-                hintText: 'g, ml, tab(s)…',
-                isDense: true,
-                errorText: _isUnitEmpty ? ' ' : null,
-              ),
-              onChanged: (_) => setState(() {
-                _rowError = _currentRowError;
-              }),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _unit,
+                    inputFormatters: [LengthLimitingTextInputFormatter(12)],
+                    decoration: InputDecoration(
+                      labelText: 'Unit',
+                      hintText: 'g, ml, tab(s)…',
+                      isDense: true,
+                      errorText: _isUnitEmpty ? ' ' : null,
+                    ),
+                    onChanged: (_) => setState(() {
+                      _rowError = _currentRowError;
+                    }),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Checkbox(
+                        value: _habitual,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        onChanged: (value) {
+                          setState(() => _habitual = value ?? false);
+                        },
+                      ),
+                      const Text('habitual'),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 26),
             FilledButton(

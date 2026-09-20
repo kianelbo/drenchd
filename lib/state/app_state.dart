@@ -218,10 +218,15 @@ class AppState extends ChangeNotifier {
     for (final r in rows) {
       final day = r['day'] as String;
       final substanceId = r['substance_id'] as int;
+      final substance = _byId[substanceId];
+      if (substance == null) continue;
+
       final count = (r['c'] as int?) ?? 0;
       final a = acc.putIfAbsent(day, _DayAcc.new);
       a.total += count;
       a.distinct += 1;
+
+      if (substance.habitual) continue;
       if (count > a.topCount) {
         a.topCount = count;
         a.topSubstanceId = substanceId;
@@ -229,7 +234,8 @@ class AppState extends ChangeNotifier {
     }
     markers = {
       for (final e in acc.entries)
-        if (_byId[e.value.topSubstanceId] != null)
+        if (_byId[e.value.topSubstanceId] != null &&
+            !_byId[e.value.topSubstanceId]!.habitual)
           e.key: DayMarker(
             topSubstance: _byId[e.value.topSubstanceId]!,
             totalCount: e.value.total,

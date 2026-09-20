@@ -97,10 +97,7 @@ class _SubstanceRow extends StatelessWidget {
                           overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 2),
                       Text(
-                        uses == 0
-                            ? 'measured in ${substance.unitName}'
-                            : '$uses ${uses == 1 ? 'entry' : 'entries'} · '
-                                'measured in ${substance.unitName}',
+                        _buildDescription(substance, uses),
                         style: theme.textTheme.bodySmall,
                       ),
                     ],
@@ -117,6 +114,18 @@ class _SubstanceRow extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _buildDescription(Substance substance, int uses) {
+    final buffer = StringBuffer();
+    if (uses > 0) {
+      buffer.write('$uses ${uses == 1 ? 'entry' : 'entries'} · ');
+    }
+    buffer.write('measured in ${substance.unitName}');
+    if (substance.habitual) {
+      buffer.write(' · habitual');
+    }
+    return buffer.toString();
   }
 
   Future<void> _delete(BuildContext context) async {

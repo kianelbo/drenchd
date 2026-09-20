@@ -35,7 +35,8 @@ class AppDatabase {
         name        TEXT    NOT NULL,
         emoji       TEXT    NOT NULL,
         unit_name   TEXT    NOT NULL DEFAULT 'g',
-        color       INTEGER NOT NULL DEFAULT 8100078
+        color       INTEGER NOT NULL DEFAULT 8100078,
+        habitual    INTEGER NOT NULL DEFAULT 0
       )
     ''');
 
@@ -63,6 +64,7 @@ class AppDatabase {
         'emoji': s.$2,
         'unit_name': s.$3,
         'color': await emojiColorFor(s.$2),
+        'habitual': s.$4 ? 1 : 0,
       });
     }
     await batch.commit(noResult: true);
@@ -81,23 +83,23 @@ class AppDatabase {
   }
 }
 
-/// (name, emoji, unit)
-const List<(String, String, String)> _seed = [
-  ('Weed', '☘️', 'g'),
-  ('Psilocybin', '🍄', 'g'),
-  ('LSD', '🌀', 'µg'),
-  ('MDMA', '💗', 'mg'),
-  ('Cocaine', '❄️', 'line(s)'),
-  ('Heroin', '💉', 'shot(s)'),
-  ('Meth', '⚡️', 'mg'),
-  ('Ketamine', '🪐', 'mg'),
-  ('2C-B', '🍬', 'mg'),
-  ('DMT', '👁️', 'mg'),
-  ('Mescaline', '🌵', 'mg'),
-  ('Nitrous oxide', '🎈', 'balloon(s)'),
-  ('Opium', '🟫', 'g'),
-  ('Morphine', '💤', 'mg'),
-  ('Salvia', '🪻', 'g'),
-  ('Alcohol', '🍷', 'ml'),
-  ('Nicotine', '🚬', 'cig(s)'),
+/// (name, emoji, unit, habitual)
+const List<(String, String, String, bool)> _seed = [
+  ('Weed', '☘️', 'g', false),
+  ('Psilocybin', '🍄', 'g', false),
+  ('LSD', '🌀', 'µg', false),
+  ('MDMA', '💗', 'mg', false),
+  ('Cocaine', '❄️', 'line(s)', false),
+  ('Heroin', '💉', 'shot(s)', false),
+  ('Meth', '⚡️', 'mg', false),
+  ('Ketamine', '🪐', 'mg', false),
+  ('2C-B', '🍬', 'mg', false),
+  ('DMT', '👁️', 'mg', false),
+  ('Mescaline', '🌵', 'mg', false),
+  ('Nitrous oxide', '🎈', 'balloon(s)', false),
+  ('Opium', '🟫', 'g', false),
+  ('Morphine', '💤', 'mg', false),
+  ('Salvia', '🪻', 'g', false),
+  ('Alcohol', '🍷', 'ml', true),
+  ('Nicotine', '🚬', 'cig(s)', true),
 ];

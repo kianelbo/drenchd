@@ -24,6 +24,7 @@ class Substance {
   final String emoji;
   final String unitName;
   final int colorValue;
+  final bool habitual;
 
   const Substance({
     this.id,
@@ -31,6 +32,7 @@ class Substance {
     required this.emoji,
     this.unitName = 'g',
     this.colorValue = 0xFF7B68EE,
+    this.habitual = false,
   });
 
   Color get color => Color(colorValue);
@@ -41,6 +43,7 @@ class Substance {
     String? emoji,
     String? unitName,
     int? colorValue,
+    bool? habitual,
   }) {
     return Substance(
       id: id ?? this.id,
@@ -48,6 +51,7 @@ class Substance {
       emoji: emoji ?? this.emoji,
       unitName: unitName ?? this.unitName,
       colorValue: colorValue ?? this.colorValue,
+      habitual: habitual ?? this.habitual,
     );
   }
 
@@ -57,6 +61,7 @@ class Substance {
     'emoji': emoji,
     'unit_name': unitName,
     'color': colorValue,
+    'habitual': habitual ? 1 : 0,
   };
 
   static Substance fromMap(Map<String, Object?> m) => Substance(
@@ -66,6 +71,7 @@ class Substance {
     unitName: (m['unit_name'] as String?) ?? 'g',
     colorValue:
         (m['color'] as int?) ?? fallbackEmojiColor(m['emoji'] as String),
+    habitual: ((m['habitual'] as int?) ?? 0) == 1,
   );
 }
 
