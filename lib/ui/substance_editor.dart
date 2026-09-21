@@ -40,7 +40,21 @@ class _SubstanceSheetState extends State<_SubstanceSheet> {
   bool get _isNameEmpty => _name.text.trim().isEmpty;
   bool get _isEmojiEmpty => _emoji.text.trim().isEmpty;
   bool get _isUnitEmpty => _unit.text.trim().isEmpty;
-  bool get _canSubmit => !_isNameEmpty && !_isEmojiEmpty && !_isUnitEmpty;
+
+  bool _isDuplicateName(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return false;
+
+    final currentId = widget.substance?.id;
+    return context.read<AppState>().substances.any(
+      (substance) =>
+          substance.id != currentId &&
+          substance.name.trim().toLowerCase() == trimmed.toLowerCase(),
+    );
+  }
+
+  bool get _hasNameConflict => _isDuplicateName(_name.text);
+  bool get _canSubmit => !_isNameEmpty && !_isEmojiEmpty && !_isUnitEmpty && !_hasNameConflict;
 
   String? get _currentRowError {
     if (_isNameEmpty && _isEmojiEmpty && _isUnitEmpty) {
@@ -52,6 +66,7 @@ class _SubstanceSheetState extends State<_SubstanceSheet> {
     if (_isNameEmpty) return 'Give it a name.';
     if (_isEmojiEmpty) return 'Add an icon.';
     if (_isUnitEmpty) return 'Add a unit.';
+    if (_hasNameConflict) return 'A substance with this name already exists.';
     return null;
   }
 

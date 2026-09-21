@@ -32,7 +32,7 @@ class AppDatabase {
     await db.execute('''
       CREATE TABLE substances (
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        name        TEXT    NOT NULL,
+        name        TEXT    NOT NULL UNIQUE,
         emoji       TEXT    NOT NULL,
         unit_name   TEXT    NOT NULL DEFAULT 'g',
         color       INTEGER NOT NULL DEFAULT 8100078,
@@ -42,13 +42,13 @@ class AppDatabase {
 
     await db.execute('''
       CREATE TABLE intakes (
-        id        INTEGER PRIMARY KEY AUTOINCREMENT,
-        substance_id   INTEGER NOT NULL REFERENCES substances(id) ON DELETE CASCADE,
-        ts        INTEGER NOT NULL,
-        day       TEXT    NOT NULL,
-        quantity  INTEGER NOT NULL DEFAULT 1,
-        cost      REAL,
-        comments  TEXT
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        substance_id    INTEGER NOT NULL REFERENCES substances(id) ON DELETE CASCADE,
+        ts              INTEGER NOT NULL,
+        day             TEXT    NOT NULL,
+        quantity        INTEGER NOT NULL DEFAULT 1,
+        cost            REAL,
+        comments        TEXT
       )
     ''');
 
