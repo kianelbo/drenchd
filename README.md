@@ -12,7 +12,7 @@ Most tracking apps are built for dashboards, not real life. Drenchd is designed 
 - Optional comments on individual entries
 - Insights page for total counts, daily activity, and per-substance trends
 - Local SQLite storage only
-- Cross-platform Flutter app for Android, iOS, macOS, and web
+- Cross-platform Flutter app for Android, iOS, macOS, windows, and web
 
 ## How to run
 
